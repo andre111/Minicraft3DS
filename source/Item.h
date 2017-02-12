@@ -42,6 +42,8 @@
 #define ITEM_FURNACE 31
 #define ITEM_WORKBENCH 32
 #define ITEM_LANTERN 33
+#define TOOL_BOW 34
+#define ITEM_ARROW 35
 
 typedef struct Inventory Inventory;
 

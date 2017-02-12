@@ -126,7 +126,7 @@ Entity newAirWizardEntity(int x, int y, int level){
     e.xKnockback = 0;
     e.yKnockback = 0;
     e.wizard.dir = 0;
-    e.wizard.health = 2000;
+    e.wizard.health = 6666;
 	e.wizard.attackDelay = 0;
 	e.wizard.attackTime = 0;
 	e.wizard.attackType = 0;

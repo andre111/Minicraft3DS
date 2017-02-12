@@ -79,7 +79,7 @@ Recipe defineRecipe(int item, int amountOrLevel, int numArgs, ...){
 void initRecipes(){
     
     curPlace = 0;
-    workbenchRecipes.size = 16;
+    workbenchRecipes.size = 17;
     workbenchRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (workbenchRecipes.size));
     workbenchRecipes.recipes[0] = defineRecipe(ITEM_WORKBENCH,1,1,ITEM_WOOD,20);
     workbenchRecipes.recipes[1] = defineRecipe(ITEM_FURNACE,1,1,ITEM_STONE,20);
@@ -97,6 +97,7 @@ void initRecipes(){
     workbenchRecipes.recipes[13] = defineRecipe(TOOL_HOE,1,2,ITEM_WOOD,5,ITEM_STONE,5);
     workbenchRecipes.recipes[14] = defineRecipe(TOOL_PICKAXE,1,2,ITEM_WOOD,5,ITEM_STONE,5);
     workbenchRecipes.recipes[15] = defineRecipe(TOOL_SHOVEL,1,2,ITEM_WOOD,5,ITEM_STONE,5);
+	workbenchRecipes.recipes[16] = defineRecipe(TOOL_BOW,1,2,ITEM_WOOD,2,ITEM_STONE,2);
 
     anvilRecipes.size = 15;
     anvilRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (anvilRecipes.size));

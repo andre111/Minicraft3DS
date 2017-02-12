@@ -122,6 +122,7 @@ char* getItemName(int itemID, int countLevel){
                 case 4: return "Gem Pickaxe";
                 default: return "Wood Pickaxe";
             }
+
         case TOOL_AXE:
             switch(countLevel){
                 case 1: return "Rock Axe";
@@ -129,6 +130,14 @@ char* getItemName(int itemID, int countLevel){
                 case 3: return "Gold Axe";
                 case 4: return "Gem Axe";
                 default: return "Wood Axe";
+            }
+		case TOOL_BOW:
+            switch(countLevel){
+                case 1: return "Rock Bow";
+                case 2: return "Iron Bow";
+                case 3: return "Gold Bow";
+                case 4: return "Gem Bow";
+                default: return "Wood Bow";
             }
         case ITEM_ANVIL: return "Anvil";
         case ITEM_CHEST: return "Chest";
@@ -158,6 +167,7 @@ char* getItemName(int itemID, int countLevel){
         case ITEM_GLASS: sprintf(currentName,"%d Glass", countLevel); return currentName;
         case ITEM_GEM: sprintf(currentName,"%d Gem", countLevel); return currentName;
         case ITEM_SLIME: sprintf(currentName,"%d Slime", countLevel); return currentName;
+		case ITEM_ARROW: sprintf(currentName,"%d Arrows", countLevel); return currentName;
         default: return ""; // null
     }
 }
@@ -204,6 +214,14 @@ char* getBasicItemName(int itemID, int countLevel){
                 case 4: return "Gem Axe";
                 default: return "Wood Axe";
             }
+		case TOOL_BOW:
+            switch(countLevel){
+                case 1: return "Rock Bow";
+                case 2: return "Iron Bow";
+                case 3: return "Gold Bow";
+                case 4: return "Gem Bow";
+                default: return "Wood Bow";
+            }
         case ITEM_ANVIL: return "Anvil";
         case ITEM_CHEST: return "Chest";
         case ITEM_OVEN: return "Oven";
@@ -232,6 +250,7 @@ char* getBasicItemName(int itemID, int countLevel){
         case ITEM_GLASS: return "Glass";
         case ITEM_GEM: return "Gem";
         case ITEM_SLIME: return "Slime";
+		case ITEM_ARROW: return "Arrow";
         default: return ""; // null
     }
     
