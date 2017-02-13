@@ -75,6 +75,7 @@
 #define TOOL_BUCKET 101
 #define TOOL_BOW 102
 #define TOOL_MAGIC_COMPASS 103
+#define ITEM_GAPPLE 104
 
 typedef struct Inventory Inventory;
 

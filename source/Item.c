@@ -158,6 +158,7 @@ char* getItemName(int itemID, int countLevel){
         case ITEM_GLASS: sprintf(currentName,"%d Glass", countLevel); return currentName;
         case ITEM_GEM: sprintf(currentName,"%d Gem", countLevel); return currentName;
         case ITEM_SLIME: sprintf(currentName,"%d Slime", countLevel); return currentName;
+        case ITEM_GAPPLE: sprintf(currentName,"%d Golden Apples", countLevel); return currentName;
 		
 		case ITEM_LOOM: return "Loom";
 		case ITEM_ENCHANTER: return "Enchanter";
@@ -268,6 +269,7 @@ char* getBasicItemName(int itemID, int countLevel){
         case ITEM_GLASS: return "Glass";
         case ITEM_GEM: return "Gem";
         case ITEM_SLIME: return "Slime";
+        case ITEM_GAPPLE: return "Golden Apple";
 		
 		case ITEM_LOOM: return "Loom";
 		case ITEM_ENCHANTER: return "Enchanter";
