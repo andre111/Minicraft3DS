@@ -712,6 +712,12 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 healPlayer(2); 
                 --item->countLevel;
             }
+        case ITEM_GAPPLE:
+            if(player.p.health < 10 && playerUseEnergy(2)){
+                healPlayer(5); 
+                --item->countLevel;
+            }
+
             return 0;
 		case ITEM_PORK_RAW:
             if(player.p.health < 10 && playerUseEnergy(4+(rand()%4))){
