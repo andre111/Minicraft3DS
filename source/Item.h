@@ -75,6 +75,10 @@
 #define TOOL_BUCKET 101
 #define TOOL_BOW 102
 #define TOOL_MAGIC_COMPASS 103
+<<<<<<< HEAD
+=======
+#define ITEM_GAPPLE 104
+>>>>>>> origin/master
 
 typedef struct Inventory Inventory;
 
