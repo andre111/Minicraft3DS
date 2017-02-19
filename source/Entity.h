@@ -13,6 +13,17 @@
 #define ENTITY_TEXTPARTICLE 7
 #define ENTITY_SMASHPARTICLE 8
 #define ENTITY_PLAYER 9
+#define ENTITY_PASSIVE 10
+#define ENTITY_ARROW 11
+#define ENTITY_SKELETON 12
+#define ENTITY_KNIGHT 13
+#define ENTITY_GLOWWORM 14
+
+#define ENTITY_DRAGON 15
+#define ENTITY_DRAGONPROJECTILE 16
+#define ENTITY_MAGIC_PILLAR 17
+
+#define ENTITY_NPC 18
 
 typedef struct Entity Entity;
 
@@ -60,6 +71,16 @@ typedef struct {
 } EntityFurniture;
 
 typedef struct {
+	u8 mtype;
+	s8 xa;
+    s8 ya;
+	s16 health;
+    s8 dir;
+    s8 randWalkTime;
+    s8 walkDist;
+} PassiveMob;
+
+typedef struct {
     s8 xa;
     s8 ya;
     s16 health;
@@ -67,8 +88,9 @@ typedef struct {
     s8 lvl;
     s8 randWalkTime;
     s8 walkDist;
+	s8 randAttackTime;
     u32 color;
-} Zombie;
+} HostileMob;
 
 typedef struct {
     s8 xa;
@@ -103,6 +125,48 @@ typedef struct {
 } Spark;
 
 typedef struct {
+	Entity* parent;
+	s16 age;
+	s16 itemID;
+	s8 xa;
+	s8 ya;
+} Arrow;
+
+typedef struct {
+    s8 xa;
+    s8 ya;
+    s16 health;
+    s8 randWalkTime;
+    s8 walkDist;
+    s8 dir;
+	int attackDelay;
+	int attackTime;
+	int attackType;
+	int animTimer;
+} Dragon;
+
+typedef struct {
+    Entity* parent;
+	u8 type;
+    s16 age;
+    float xa;
+    float ya;
+    float xx;
+    float yy;
+} DragonFire;
+
+typedef struct {
+    s8 xa;
+    s8 ya;
+    s8 randWalkTime;
+	s8 waitTime;
+} Glowworm;
+
+typedef struct {
+	u8 type;
+} NPC;
+
+typedef struct {
     float xa;
     float ya;
     float za;
@@ -133,36 +197,51 @@ struct Entity {
         Player p;
         EntityItem entityItem;
         EntityFurniture entityFurniture;
-        Zombie zombie;
+		PassiveMob passive;
+        HostileMob hostile;
         Slime slime;
         AirWizard wizard;
         Spark spark;
+		Arrow arrow;
+		Glowworm glowworm;
+		Dragon dragon;
+		DragonFire dragonFire;
+        NPC npc;
         TextParticleEntity textParticle;
         SmashParticleEntity smashParticle;
     };
 };
 
 typedef struct {
-    Entity entities[5][1000];
-    Entity wizardSparks[120];
-    s16 lastSlot[5];
+    Entity entities[6][1000];
+    s16 lastSlot[6];
     Inventory invs[301];//1 for the player, 300 for chests.
     s16 nextInv;
 } EntityManager;
 
 EntityManager eManager;
+Entity nullEntity;
 s8 currentLevel;
 
 
 double gaussrand();
 Entity newItemEntity(Item item, int x, int y, int level);
 Entity newFurnitureEntity(int itemID,Inventory * invPtr, int x, int y, int level);
+Entity newPassiveEntity(int type, int x, int y, int level);
 Entity newZombieEntity(int lvl, int x, int y, int level);
+Entity newSkeletonEntity(int lvl, int x, int y, int level);
+Entity newKnightEntity(int lvl, int x, int y, int level);
 Entity newSlimeEntity(int lvl, int x, int y, int level);
 Entity newAirWizardEntity(int x, int y, int level);
 Entity newSparkEntity(Entity* parent, float xa, float ya);
+Entity newDragonEntity(int x, int y, int level);
+Entity newDragonFireEntity(Entity* parent, u8 type, int x, int y, float xa, float ya);
+Entity newMagicPillarEntity(int x, int y, int level);
 Entity newTextParticleEntity(char * str, u32 color, int xa, int ya, int level);
 Entity newSmashParticleEntity(int xa, int ya, int level);
+Entity newArrowEntity(Entity* parent, int itemID, s8 xa, s8 ya, int level);
+Entity newGlowwormEntity(int x, int y, int level);
+Entity newNPCEntity(int type, int x, int y, int level);
 void addEntityToList(Entity e, EntityManager* em);
 void removeEntityFromList(Entity * e,int level,EntityManager* em);
 

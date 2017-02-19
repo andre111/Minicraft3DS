@@ -1,33 +1,33 @@
 #include "SaveLoad.h"
 
-s16 calculateImportantEntites(EntityManager * eManager, int level){
-    int i;
-    s16 count = 0;
-    for(i = 0; i < eManager->lastSlot[level]; ++i){
-        switch(eManager->entities[level][i].type){
-            case ENTITY_AIRWIZARD:
-            case ENTITY_SLIME:
-            case ENTITY_ZOMBIE:
-            case ENTITY_ITEM:
-            case ENTITY_FURNITURE:
-                count++;
-                break;
-        }
-    }
-    return count;
-}
-
 bool entityIsImportant(Entity * e){
     switch(e->type){
         case ENTITY_AIRWIZARD:
         case ENTITY_SLIME:
         case ENTITY_ZOMBIE:
+		case ENTITY_SKELETON:
+		case ENTITY_KNIGHT:
         case ENTITY_ITEM:
         case ENTITY_FURNITURE:
+		case ENTITY_PASSIVE:
+		case ENTITY_GLOWWORM:
+		case ENTITY_DRAGON:
+        case ENTITY_NPC:
             return true;
         default:
             return false;
     }
+}
+
+s16 calculateImportantEntites(EntityManager * eManager, int level){
+    int i;
+    s16 count = 0;
+    for(i = 0; i < eManager->lastSlot[level]; ++i){
+        if(entityIsImportant(&eManager->entities[level][i])){
+            count++;
+        }
+    }
+    return count;
 }
 
 void saveCurrentWorld(char * filename, EntityManager * eManager, Entity * player, u8 * map, u8 * mapData){
@@ -75,8 +75,10 @@ void saveCurrentWorld(char * filename, EntityManager * eManager, Entity * player
                     fwrite(&eManager->entities[i][j].slime.lvl, sizeof(s8), 1, file);
                     break;
                 case ENTITY_ZOMBIE:
-                    fwrite(&eManager->entities[i][j].zombie.health, sizeof(s16), 1, file);
-                    fwrite(&eManager->entities[i][j].zombie.lvl, sizeof(s8), 1, file);
+				case ENTITY_SKELETON:
+				case ENTITY_KNIGHT:
+                    fwrite(&eManager->entities[i][j].hostile.health, sizeof(s16), 1, file);
+                    fwrite(&eManager->entities[i][j].hostile.lvl, sizeof(s8), 1, file);
                     break;
                 case ENTITY_ITEM:
                     fwrite(&eManager->entities[i][j].entityItem.item.id, sizeof(s16), 1, file);
@@ -88,13 +90,47 @@ void saveCurrentWorld(char * filename, EntityManager * eManager, Entity * player
                     int invIndex = eManager->entities[i][j].entityFurniture.inv - eManager->invs;
                     fwrite(&invIndex, sizeof(int), 1, file);
                     break;
+				case ENTITY_PASSIVE:
+					fwrite(&eManager->entities[i][j].passive.health, sizeof(s16), 1, file);
+                    fwrite(&eManager->entities[i][j].passive.mtype, sizeof(u8), 1, file);
+                    break;
+				case ENTITY_DRAGON:
+                    fwrite(&eManager->entities[i][j].dragon.health, sizeof(s16), 1, file);
+                    break;
+                case ENTITY_NPC:
+                    fwrite(&eManager->entities[i][j].npc.type, sizeof(u8), 1, file);
+                    break;
             }
         }
     }
     
     // Map Data
+	//Don't write or load dungeon, so only first 5 levels not 6
     fwrite(map, sizeof(u8), 128*128*5, file); // Map Tile IDs, 128*128*5 bytes = 80KB
     fwrite(mapData, sizeof(u8), 128*128*5, file); // Map Tile Data (Damage done to trees/rocks, age of wheat & saplings, etc). 80KB
+	
+	fwrite(&daytime, sizeof(u16), 1, file);
+	
+	fwrite(minimapData, sizeof(u8), 128*128, file); // Minimap, visibility data 16KB
+    
+    //Quest Data
+    fwrite(&questManager.size, sizeof(int), 1, file);
+    for(i = 0; i < questManager.size; ++i) {
+        fwrite(&(questManager.questlines[i].currentQuest), sizeof(int), 1, file);
+        fwrite(&(questManager.questlines[i].currentQuestDone), sizeof(bool), 1, file);
+    }
+    
+    //Compass Data
+    for(i=0; i<6; ++i) {
+        fwrite(&(compassData[i][0]), sizeof(u8), 1, file); //x of choosen stair
+        fwrite(&(compassData[i][1]), sizeof(u8), 1, file); //y of choosen stair
+        fwrite(&(compassData[i][2]), sizeof(u8), 1, file); //count
+    }
+    
+    //Day/season Data
+    fwrite(&day, sizeof(int), 1, file);
+	fwrite(&season, sizeof(u8), 1, file);
+    fwrite(&rain, sizeof(bool), 1, file);
     
     fclose(file);
 }
@@ -195,21 +231,58 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
                             }
                             break;
                         case ENTITY_ZOMBIE:
-                            fread(&eManager->entities[i][j].zombie.health, sizeof(s16), 1, file);
-                            fread(&eManager->entities[i][j].zombie.lvl, sizeof(s8), 1, file);
+                            fread(&eManager->entities[i][j].hostile.health, sizeof(s16), 1, file);
+                            fread(&eManager->entities[i][j].hostile.lvl, sizeof(s8), 1, file);
                             eManager->entities[i][j].level = i;
                             eManager->entities[i][j].hurtTime = 0;
                             eManager->entities[i][j].xKnockback = 0;
                             eManager->entities[i][j].yKnockback = 0;
-                            eManager->entities[i][j].zombie.dir = 0;
+                            eManager->entities[i][j].hostile.dir = 0;
                             eManager->entities[i][j].xr = 4;
                             eManager->entities[i][j].yr = 3;
                             eManager->entities[i][j].canPass = false;
-                            switch(eManager->entities[i][j].zombie.lvl){
-                                case 2: eManager->entities[i][j].zombie.color = 0xFF8282CC; break;
-                                case 3: eManager->entities[i][j].zombie.color = 0xFFEFEFEF; break;
-                                case 4: eManager->entities[i][j].zombie.color = 0xFFAA6262; break;
-                                default: eManager->entities[i][j].zombie.color = 0xFF95DB95; break;
+                            switch(eManager->entities[i][j].hostile.lvl){
+                                case 2: eManager->entities[i][j].hostile.color = 0xFF8282CC; break;
+                                case 3: eManager->entities[i][j].hostile.color = 0xFFEFEFEF; break;
+                                case 4: eManager->entities[i][j].hostile.color = 0xFFAA6262; break;
+                                default: eManager->entities[i][j].hostile.color = 0xFF95DB95; break;
+                            }
+                            break;
+						case ENTITY_SKELETON:
+                            fread(&eManager->entities[i][j].hostile.health, sizeof(s16), 1, file);
+                            fread(&eManager->entities[i][j].hostile.lvl, sizeof(s8), 1, file);
+                            eManager->entities[i][j].level = i;
+                            eManager->entities[i][j].hurtTime = 0;
+                            eManager->entities[i][j].xKnockback = 0;
+                            eManager->entities[i][j].yKnockback = 0;
+                            eManager->entities[i][j].hostile.dir = 0;
+							eManager->entities[i][j].hostile.randAttackTime = 0;
+                            eManager->entities[i][j].xr = 4;
+                            eManager->entities[i][j].yr = 3;
+                            eManager->entities[i][j].canPass = false;
+                            switch(eManager->entities[i][j].hostile.lvl){
+                                case 2: eManager->entities[i][j].hostile.color = 0xFFC4C4C4; break;
+                                case 3: eManager->entities[i][j].hostile.color = 0xFFA0A0A0; break;
+                                case 4: eManager->entities[i][j].hostile.color = 0xFF7A7A7A; break;
+                                default: eManager->entities[i][j].hostile.color = 0xFFFFFFFF; break;
+                            }
+                            break;
+						case ENTITY_KNIGHT:
+                            fread(&eManager->entities[i][j].hostile.health, sizeof(s16), 1, file);
+                            fread(&eManager->entities[i][j].hostile.lvl, sizeof(s8), 1, file);
+                            eManager->entities[i][j].level = i;
+                            eManager->entities[i][j].hurtTime = 0;
+                            eManager->entities[i][j].xKnockback = 0;
+                            eManager->entities[i][j].yKnockback = 0;
+                            eManager->entities[i][j].hostile.dir = 0;
+                            eManager->entities[i][j].xr = 4;
+                            eManager->entities[i][j].yr = 3;
+                            eManager->entities[i][j].canPass = false;
+                            switch(eManager->entities[i][j].hostile.lvl){
+                                case 2: eManager->entities[i][j].hostile.color = 0xFF0000C6; break;
+                                case 3: eManager->entities[i][j].hostile.color = 0xFF00A3C6; break;
+                                case 4: eManager->entities[i][j].hostile.color = 0xFF707070; break;
+                                default: eManager->entities[i][j].hostile.color = 0xFFFFFFFF; break;
                             }
                             break;
                         case ENTITY_ITEM:
@@ -239,11 +312,98 @@ int loadWorld(char * filename, EntityManager * eManager, Entity * player, u8 * m
                             eManager->entities[i][j].canPass = false;
                             if(eManager->entities[i][j].entityFurniture.itemID == ITEM_LANTERN) eManager->entities[i][j].entityFurniture.r = 8;
                             break;
+						case ENTITY_PASSIVE:
+                            fread(&eManager->entities[i][j].passive.health, sizeof(s16), 1, file);
+                            fread(&eManager->entities[i][j].passive.mtype, sizeof(u8), 1, file);
+                            eManager->entities[i][j].level = i;
+                            eManager->entities[i][j].hurtTime = 0;
+                            eManager->entities[i][j].xKnockback = 0;
+                            eManager->entities[i][j].yKnockback = 0;
+                            eManager->entities[i][j].passive.dir = 0;
+                            eManager->entities[i][j].xr = 4;
+                            eManager->entities[i][j].yr = 3;
+                            eManager->entities[i][j].canPass = false;
+                            break;
+						case ENTITY_GLOWWORM:
+							eManager->entities[i][j].glowworm.xa = 0;
+							eManager->entities[i][j].glowworm.ya = 0;
+							eManager->entities[i][j].glowworm.randWalkTime = 0;
+							eManager->entities[i][j].glowworm.waitTime = 0;
+							break;
+						case ENTITY_DRAGON:
+                            fread(&eManager->entities[i][j].dragon.health, sizeof(s16), 1, file);
+                            eManager->entities[i][j].level = i;
+                            eManager->entities[i][j].hurtTime = 0;
+                            eManager->entities[i][j].xKnockback = 0;
+                            eManager->entities[i][j].yKnockback = 0;
+                            eManager->entities[i][j].dragon.dir = 0;
+                            eManager->entities[i][j].dragon.attackDelay = 0;
+                            eManager->entities[i][j].dragon.attackTime = 0;
+                            eManager->entities[i][j].dragon.attackType = 0;
+							eManager->entities[i][j].dragon.animTimer = 0;
+                            eManager->entities[i][j].dragon.xa = 0;
+                            eManager->entities[i][j].dragon.ya = 0;
+                            eManager->entities[i][j].xr = 8;
+                            eManager->entities[i][j].yr = 8;
+                            eManager->entities[i][j].canPass = true;
+                            break;
+                        case ENTITY_NPC:
+                            fread(&eManager->entities[i][j].npc.type, sizeof(u8), 1, file);
+                            eManager->entities[i][j].level = i;
+                            eManager->entities[i][j].hurtTime = 0;
+                            eManager->entities[i][j].xKnockback = 0;
+                            eManager->entities[i][j].yKnockback = 0;
+                            eManager->entities[i][j].xr = 4;
+                            eManager->entities[i][j].yr = 3;
+                            eManager->entities[i][j].canPass = false;
+                            break;
                     }
                 }
             }
+			//Don't write or load dungeon, so only first 5 levels not 6
             fread(map, sizeof(u8), 128*128*5, file);
             fread(mapData, sizeof(u8), 128*128*5, file);
+			
+			//set to startvalue incase file is old and doesn't contain saved time
+			daytime = 6001;
+			fread(&daytime, sizeof(u16), 1, file);
+			
+			fread(minimapData, sizeof(u8), 128*128, file);
+            
+            //Quest Data
+            int qsize = 0;
+            fread(&qsize, sizeof(int), 1, file);
+            for(i = 0; i < qsize; ++i) {
+                fread(&(questManager.questlines[i].currentQuest), sizeof(int), 1, file);
+                fread(&(questManager.questlines[i].currentQuestDone), sizeof(bool), 1, file);
+            }
+            //fill missing questlines with "no progress done"
+            for(i = qsize; i < questManager.size; ++i) {
+                questManager.questlines[i].currentQuest = 0;
+                questManager.questlines[i].currentQuestDone = false;
+            }
+            
+            //Compass Data
+            //reset incase it is missing in the save
+            for(i=0; i<6; ++i) {
+                compassData[i][0] = 0; //x of choosen stair
+                compassData[i][1] = 0; //y of choosen stair
+                compassData[i][2] = 0; //count
+            }
+            for(i=0; i<6; ++i) {
+                fread(&(compassData[i][0]), sizeof(u8), 1, file); //x of choosen stair
+                fread(&(compassData[i][1]), sizeof(u8), 1, file); //y of choosen stair
+                fread(&(compassData[i][2]), sizeof(u8), 1, file); //count
+            }
+            
+            //Day/season Data
+            day = 0;
+            season = 0;
+            rain = false;
+            fread(&day, sizeof(int), 1, file);
+            fread(&season, sizeof(u8), 1, file);
+            fread(&rain, sizeof(bool), 1, file);
+			
             fclose(file);
             return 0;
         }

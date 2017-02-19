@@ -5,13 +5,15 @@ Dependencies:
 
 ctrulib by smea: https://github.com/smealum/ctrulib
 
+citro3d by fincs: https://github.com/fincs/citro3d
+
 sf2dlib by xerpi: https://github.com/xerpi/sf2dlib
 
 sfillib by xerpi: https://github.com/xerpi/sfillib
 
 zlib: http://www.zlib.net/
 
-Current Version: Version 1.0
+Current Version: Version 1.2
 
 You can do anything with the source code (besides sell it) as long as you give proper credit to the right people. 
 If you are going to make a mod of this version, be sure to give credit to Markus "Notch" Perrson because he did create the original game after all.

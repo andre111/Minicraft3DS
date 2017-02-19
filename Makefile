@@ -32,9 +32,9 @@ SOURCES		:=	source source/minizip
 DATA		:=	data
 INCLUDES	:=	include
 
-APP_TITLE	:= Test
-APP_DESCRIPTION	:= ???
-APP_AUTHOR	:= Davideesk
+APP_TITLE	:= Minicraft 3DS
+APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson. This was ported to the 3DS by Davideesk.
+APP_AUTHOR	:= Davideesk and andre111
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -52,7 +52,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lctru -lm
+LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -1,7 +1,7 @@
 #include "Menu.h"
 
-char options[][12] = {"Start Game", "How To Play","Settings", "About", "Exit"};
-char pOptions[][24] = {"Return to game", "Save Progress", "Exit to title"};
+char options[][12] = {"Start Game", "Join Game", "How To Play","Settings", "About", "Exit"};
+char pOptions[][24] = {"Return to game", "Save Progress", "Host World", "Exit to title"};
 char keybOptions[][24] = {"Exit and Save", "Exit and Don't save","Reset to default"};
 char setOptions[][24] = {"Rebind Buttons", "Texture packs", "Debug Text:   ", "N3DS Speedup:   ", "Return to title"};
 
@@ -271,6 +271,28 @@ s8 checkPropButtons(){
     return -1;
 }
 
+bool menuHasMapLoaded = false;
+float mxscr = 400;
+float myscr = 400;
+float menuxa = 0;
+float menuya = 0;
+void initMenus() {
+	readFiles();
+	
+	if(worldFileCount>0) {
+		memset(&currentFileName, 0, 255); // reset currentFileName
+        sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
+		
+		initBGMap = 1;
+	} else {
+		initBGMap = 2;
+	}
+	
+	menuHasMapLoaded = true;
+	menuxa = (rand()%3 - 1) * 0.25;
+	menuya = (rand()%3 - 1) * 0.25;
+}
+
 Item median;
 void tickMenu(int menu){
     switch(menu){
@@ -357,18 +379,22 @@ void tickMenu(int menu){
         case MENU_PAUSED:
             if(!areYouSure && !areYouSureSave){
                 if(pauseSaveDisplayTimer > 0) --pauseSaveDisplayTimer;
-                if (k_pause.clicked) currentMenu = MENU_NONE;
-		        if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=2;}
-		        if (k_down.clicked){ ++currentSelection; if(currentSelection > 2)currentSelection=0;}
+                if (k_pause.clicked || k_decline.clicked) currentMenu = MENU_NONE;
+		        if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=3;}
+		        if (k_down.clicked){ ++currentSelection; if(currentSelection > 3)currentSelection=0;}
                 if (k_accept.clicked){
                     switch(currentSelection){
                     case 0:      
                         currentMenu = MENU_NONE;
                         break;
                     case 1:
-	                    areYouSureSave = true;
+	                    if(currentLevel!=5) areYouSureSave = true;
                         break;
                     case 2:
+                        networkHost();
+                        currentMenu = MENU_NONE;
+                        break;
+                    case 3:
 	                    areYouSure = true;
                         break;
                     }
@@ -387,9 +413,13 @@ void tickMenu(int menu){
                 if (k_accept.clicked){
                     areYouSure = false;
                     areYouSureSave = false;
-	                sf2d_set_clear_color(0xFF000000);
+	                sf2d_set_clear_color(0xFF);
                     currentSelection = 0;
                     currentMenu = MENU_TITLE;
+                    
+                    networkDisconnect();
+					
+					playMusic(music_menu);
                 } else if (k_decline.clicked){
                     areYouSure = false;
                     areYouSureSave = false;
@@ -407,9 +437,7 @@ void tickMenu(int menu){
                     median = player.p.inv->items[curInvSel]; // create copy of item.
                     removeItemFromInventory(curInvSel, player.p.inv); // remove original
                     pushItemToInventoryFront(median, player.p.inv); // add copy to front
-                    player.p.activeItem = &player.p.inv->items[0]; // active item = copy.
-                    if(player.p.activeItem->id > 27) player.p.isCarrying = true;
-                    else player.p.isCarrying = false;
+					playerSetActiveItem(&player.p.inv->items[0]); // active item = copy.
                 }
                 currentMenu = MENU_NONE;
             }
@@ -432,17 +460,21 @@ void tickMenu(int menu){
         
         case MENU_WIN:
             if (k_accept.clicked){ 
-	            sf2d_set_clear_color(0xFF000000);
+	            sf2d_set_clear_color(0xFF);
                 currentSelection = 0;
                 currentMenu = MENU_TITLE;
                 saveCurrentWorld(currentFileName, &eManager, &player, (u8*)map, (u8*)data);
+				
+				playMusic(music_menu);
             }
         break;
         case MENU_LOSE:
             if (k_accept.clicked){ 
-	            sf2d_set_clear_color(0xFF000000);
+	            sf2d_set_clear_color(0xFF);
                 currentSelection = 0;
                 currentMenu = MENU_TITLE;
+				
+				playMusic(music_menu);
             }
         break;
         case MENU_ABOUT:
@@ -450,48 +482,71 @@ void tickMenu(int menu){
         break;
         
         case MENU_CONTAINER:
-        if (k_menu.clicked || k_decline.clicked)currentMenu = MENU_NONE;
-        
-        if (k_left.clicked) {
-			curChestEntity->entityFurniture.r = 0;
-			int tmp = curInvSel;
-			curInvSel = curChestEntity->entityFurniture.oSel;
-			curChestEntity->entityFurniture.oSel = tmp;
-		}
-		if (k_right.clicked) {
-			curChestEntity->entityFurniture.r = 1;
-			int tmp = curInvSel;
-			curInvSel = curChestEntity->entityFurniture.oSel;
-			curChestEntity->entityFurniture.oSel = tmp;
-		}
-		
-		Inventory* i1 = curChestEntity->entityFurniture.r == 1 ? player.p.inv : curChestEntity->entityFurniture.inv;
-		Inventory* i2 = curChestEntity->entityFurniture.r == 0 ? player.p.inv : curChestEntity->entityFurniture.inv;
-		int len = i1->lastSlot;
-		if (curInvSel < 0) curInvSel = 0;
-		if (curInvSel >= len) curInvSel = len - 1;
-		if (k_up.clicked) --curInvSel;
-		if (k_down.clicked) ++curInvSel;
-		if (len == 0) curInvSel = 0;
-		if (curInvSel < 0) curInvSel += len;
-		if (curInvSel >= len) curInvSel -= len;
-		
-		if(k_accept.clicked && len > 0){
-            Item* pullItem = &i1->items[curInvSel];
-            Item pushItem = newItem(pullItem->id,pullItem->countLevel);
-            pushItem.chestPtr = pullItem->chestPtr;
-            pushItemToInventoryFront(pushItem, i2);
-            if(i2 == player.p.inv){
-                int newslot = player.p.activeItem->slotNum + 1;
-                player.p.activeItem = &player.p.inv->items[newslot];
-            } else if(pullItem == player.p.activeItem){
-                player.p.activeItem = &noItem;
-            }
-            removeItemFromCurrentInv(pullItem);
-			if (curInvSel >= i1->lastSlot) curInvSel = i1->lastSlot - 1;
-        }
-		
+			if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
+			
+			if (k_left.clicked) {
+				curChestEntity->entityFurniture.r = 0;
+				int tmp = curInvSel;
+				curInvSel = curChestEntity->entityFurniture.oSel;
+				curChestEntity->entityFurniture.oSel = tmp;
+			}
+			if (k_right.clicked) {
+				curChestEntity->entityFurniture.r = 1;
+				int tmp = curInvSel;
+				curInvSel = curChestEntity->entityFurniture.oSel;
+				curChestEntity->entityFurniture.oSel = tmp;
+			}
+			
+			Inventory* i1 = curChestEntity->entityFurniture.r == 1 ? player.p.inv : curChestEntity->entityFurniture.inv;
+			Inventory* i2 = curChestEntity->entityFurniture.r == 0 ? player.p.inv : curChestEntity->entityFurniture.inv;
+			int len = i1->lastSlot;
+			if (curInvSel < 0) curInvSel = 0;
+			if (curInvSel >= len) curInvSel = len - 1;
+			if (k_up.clicked) --curInvSel;
+			if (k_down.clicked) ++curInvSel;
+			if (len == 0) curInvSel = 0;
+			if (curInvSel < 0) curInvSel += len;
+			if (curInvSel >= len) curInvSel -= len;
+			
+			if(k_accept.clicked && len > 0){
+				Item* pullItem = &i1->items[curInvSel];
+				Item pushItem = newItem(pullItem->id,pullItem->countLevel);
+				pushItem.chestPtr = pullItem->chestPtr;
+				pushItemToInventoryFront(pushItem, i2);
+				if(i2 == player.p.inv){
+					int newslot = player.p.activeItem->slotNum + 1;
+					player.p.activeItem = &player.p.inv->items[newslot];
+				} else if(pullItem == player.p.activeItem){
+					player.p.activeItem = &noItem;
+				}
+				removeItemFromCurrentInv(pullItem);
+				if (curInvSel >= i1->lastSlot) curInvSel = i1->lastSlot - 1;
+			}
         break;
+		
+		case MENU_DUNGEON:
+			if (k_menu.clicked || k_decline.clicked) currentMenu = MENU_NONE;
+			
+			if(k_accept.clicked) {
+				if(currentLevel!=5) {
+					Item * item = getItemFromInventory(ITEM_DUNGEON_KEY, player.p.inv);
+					if(item!=NULL) {
+						--item->countLevel;
+						if(item->countLevel==0) {
+							removeItemFromCurrentInv(item);
+						}
+						
+						enterDungeon();
+					} else if(TESTGODMODE) {
+                        enterDungeon();
+                    }
+				} else {
+					leaveDungeon();
+				}
+				
+				currentMenu = MENU_NONE;
+			}
+		break;
         
         case MENU_LOADGAME:
             if(!enteringName && !areYouSure){ // World select
@@ -512,10 +567,11 @@ void tickMenu(int menu){
                         enteringName = true;
                     } else {
                         memset(&currentFileName, 0, 255); // reset currentFileName
-                            sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
-                            playSound(snd_test);
-                            initGame = 1;
-                            currentMenu = MENU_NONE;
+                        sprintf(currentFileName,"%s.wld",fileNames[currentSelection]);
+                        playSound(snd_test);
+                        initGame = 1;
+                        currentMenu = MENU_NONE;
+                        isRemote = false;
                     }
                 }
             } else if (areYouSure){
@@ -539,6 +595,7 @@ void tickMenu(int menu){
                         playSound(snd_test);
                         initGame = 2;
                         ++worldFileCount;
+                        isRemote = false;
                     }
                 }
                 if((k_touch.px != 0 || k_touch.py != 0) && touchDelay == 0){ 
@@ -564,11 +621,7 @@ void tickMenu(int menu){
                     isLoadingTP = 4;
                 } else {
 	                icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
-	                dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
-	                dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
-	                dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
-	                dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
-	                dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
+	                reloadColors();
 	                font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
 	                bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
                     currentMenu = MENU_SETTINGS;
@@ -591,7 +644,7 @@ void tickMenu(int menu){
             }
             if(k_decline.clicked){
                 currentMenu = MENU_TITLE;
-                currentSelection = 2;
+                currentSelection = 3;
             }
 		    if(k_accept.clicked){
                 switch(currentSelection){
@@ -642,8 +695,29 @@ void tickMenu(int menu){
             }
         break;
         case MENU_TITLE:
-		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=4;}
-		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 4)currentSelection=0;}
+			//Map BG
+			if(menuHasMapLoaded) {
+				mxscr += menuxa;
+				myscr += menuya;
+				
+				if (mxscr < 16) {
+					mxscr = 16;
+					menuxa = -menuxa;
+				} else if (mxscr > 1832) {
+					mxscr = 1832;
+					menuxa = -menuxa;
+				}
+				if (myscr < 16) {
+					myscr = 16;
+					menuya = -menuya;
+				} else if (myscr > 1792) {
+					myscr = 1792;
+					menuya = -menuya;
+				}
+			}
+		
+		    if (k_up.clicked){ --currentSelection; if(currentSelection < 0)currentSelection=5;}
+		    if (k_down.clicked){ ++currentSelection; if(currentSelection > 5)currentSelection=0;}
 		    
 		    if(k_accept.clicked){
                 switch(currentSelection){
@@ -655,17 +729,21 @@ void tickMenu(int menu){
                         areYouSure = false;
                     break;
                     case 1:
+                        currentMenu = MENU_MULTIPLAYER;
+                        currentSelection = 0;
+                    break;
+                    case 2:
                         sprintf(pageText,"Page: %d/%d",pageNum+1,maxPageNum+1);
                         currentMenu = MENU_TUTORIAL;
                     break;
-                    case 2:
+                    case 3:
                         currentSelection = 0;
                         currentMenu = MENU_SETTINGS;
                     break;
-                    case 3: 
+                    case 4: 
                         currentMenu = MENU_ABOUT;
                     break;
-                    case 4: 
+                    case 5: 
                         quitGame = true;
                     break;
                 }
@@ -674,7 +752,7 @@ void tickMenu(int menu){
         break;
         case MENU_TUTORIAL:
             if(k_decline.clicked){ 
-                currentSelection = 1;
+                currentSelection = 2;
                 currentMenu = MENU_TITLE;
             }
             if(k_menuNext.clicked){
@@ -690,6 +768,28 @@ void tickMenu(int menu){
                 }
             }
             
+        break;
+        case MENU_NPC:
+            tickNPCMenu();
+        break;
+        case MENU_MULTIPLAYER:
+            networkScan();
+        
+            if (k_decline.clicked){
+                currentMenu = MENU_TITLE;
+                currentSelection = 1;
+            }
+            if (k_up.clicked){ --currentSelection; if(currentSelection < 0) currentSelection = (networkGetScanCount()>0 ? networkGetScanCount()-1 : 0);}
+            if (k_down.clicked){ ++currentSelection; if(currentSelection >= networkGetScanCount()) currentSelection=0;}
+        
+            if(k_accept.clicked){
+                //TODO: Join World
+                if(networkConnect(currentSelection)) {
+                    initGame = 1;
+                    currentMenu = MENU_NONE;
+                    isRemote = true;
+                }
+            }
         break;
     }
     
@@ -734,15 +834,21 @@ void renderMenu(int menu,int xscr,int yscr){
     switch(menu){
         case MENU_TUTORIAL:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				
 		        renderTutorialPage(true);
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
+				sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
 		        renderTutorialPage(false);
 		    sf2d_end_frame();
             break;
         case MENU_SETTINGS_TP:
             offsetX = 0;offsetY = (currentSelection * 40) - 48;
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
 		        drawText("Texture Packs",122,-16);
 		        for(i = 0; i < tpFileCount; ++i){
                     int color = 0xFF923232;
@@ -789,6 +895,8 @@ void renderMenu(int menu,int xscr,int yscr){
                 }
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
+				sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
                 drawText("Press   to select", 58, 100);
                 renderButtonIcon(k_accept.input & -k_accept.input, 128, 98, 1);
                 drawText("Press   to return", 58, 150);
@@ -796,95 +904,101 @@ void renderMenu(int menu,int xscr,int yscr){
 		    sf2d_end_frame();
         break;
         case MENU_LOADGAME:
-		sf2d_start_frame(GFX_TOP, GFX_LEFT);
-        if(!enteringName){ // World select
-            offsetX = 0;offsetY = (currentSelection * 32) - 48;
-            drawText("Select a file",122,-16);
-            for(i = 0; i < worldFileCount + 1; ++i){
-                int color = 0xFF921020;
-                char * text = fileNames[i];
-                if(i == worldFileCount){
-                    text = "Generate New World";
-                    color = 0xFF209210;
-                }
-                if(i != currentSelection) color &= 0xFF7F7F7F; // Darken color.
-                else {
-                    if(areYouSure)color = 0xFF1010DF;
-                }
+            sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
                 
-                char scoreText[24];
-                sprintf(scoreText,"Score: %d",fileScore[i]);
+                if(!enteringName){ // World select
+                    offsetX = 0;offsetY = (currentSelection * 32) - 48;
+                    drawText("Select a file",122,-16);
+                    for(i = 0; i < worldFileCount + 1; ++i){
+                        int color = 0xFF921020;
+                        char * text = fileNames[i];
+                        if(i == worldFileCount){
+                            text = "Generate New World";
+                            color = 0xFF209210;
+                        }
+                        if(i != currentSelection) color &= 0xFF7F7F7F; // Darken color.
+                        else {
+                            if(areYouSure)color = 0xFF1010DF;
+                        }
+                        
+                        char scoreText[24];
+                        sprintf(scoreText,"Score: %d",fileScore[i]);
+                        
+                        renderFrame(1,i*4,24,(i*4)+4,color);
+                        if(i != worldFileCount){
+                            drawText(text,(400-(strlen(text)*12))/2,i*64+12);
+                            drawText(scoreText,(400-(strlen(scoreText)*12))/2,i*64+32);
+                        } else {
+                            drawText(text,(400-(strlen(text)*12))/2,i*64+24);
+                        }
+                        if(fileWin[i] && i != worldFileCount) render16(18,i*32+8,24,208,0); // Render crown
+                    }
+                    offsetX = 0;offsetY = 0;
+                } else { // Enter new world name.
+                    drawText("Enter a name",128,16);
+                    drawText(fileNames[worldFileCount],(400-(strlen(fileNames[worldFileCount])*12))/2, 48);
+                    
+                    if(errorFileName > 0){
+                        switch(errorFileName){// Error: Filename cannot already exist.
+                            case 1: drawTextColor("ERROR: Length cannot be 0!",(400-26*12)/2,200,0xFF1010AF); break;    
+                            case 2: drawTextColor("ERROR: You need Letters/Numbers!",(400-32*12)/2,200,0xFF1010AF); break;    
+                            case 3: drawTextColor("ERROR: Filename already exists!",(400-31*12)/2,200,0xFF1010AF); break;    
+                        }    
+                    }
+                }
+            sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
                 
-                renderFrame(1,i*4,24,(i*4)+4,color);
-                if(i != worldFileCount){
-                    drawText(text,(400-(strlen(text)*12))/2,i*64+12);
-                    drawText(scoreText,(400-(strlen(scoreText)*12))/2,i*64+32);
-                } else {
-                    drawText(text,(400-(strlen(text)*12))/2,i*64+24);
+                if(!enteringName){ // World select
+                    if(!areYouSure){
+                        drawTextColor("Load World",100,12,0xFF3FFFFF);
+                        drawText("Press   or   to scroll", 28, 50);
+                        renderButtonIcon(k_up.input & -k_up.input, 98, 48, 1);
+                        renderButtonIcon(k_down.input & -k_down.input, 160, 48, 1);
+                        drawText("Press   to load world", (320-21*12)/2, 100);
+                        renderButtonIcon(k_accept.input & -k_accept.input, 104, 98, 1);
+                        drawText("Press   to return", 58, 150);
+                        renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                        if(currentSelection != worldFileCount){
+                            drawText("Press   to delete",(320-17*12)/2, 200);
+                            renderButtonIcon(k_delete.input & -k_delete.input, 128, 198, 1);
+                        }
+                    } else {
+                        drawTextColor("Delete File?",88,12,0xFF3F3FFF);
+                        drawText("Press   to confirm", (320-18*12)/2, 100);
+                        renderButtonIcon(k_accept.input & -k_accept.input, 122, 98, 1);
+                        drawText("Press   to return", 58, 150);
+                        renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+                    }
+                    
+                } else { // Draw the "keyboard"
+                    drawTextColor("Touch the keypad below",(320-22*12)/2,12,0xFF33FFFF);
+                    
+                    sf2d_draw_rectangle(0, 50, 320, 110, 0xFF7F7FBF);
+                    
+                    if(touchDelay > 0){
+                        sf2d_draw_rectangle(touchX, touchY, touchW, touchH, 0xFF0000AF);
+                    }
+                    
+                    drawSizedText(guiText0,4, 60, 2);
+                    drawSizedText(guiText1,4, 80, 2);
+                    drawSizedText(guiText2,12, 100, 2);
+                    drawSizedText(guiText3,28, 120, 2);
+                    drawSizedText(guiText4,12, 140, 2);
+                    
+                    drawText("Press   to confirm", (320-18*12)/2, 180);
+                    renderButtonIcon(k_accept.input & -k_accept.input, 122, 178, 1);
+                    drawText("Press   to return", 58, 210);
+                    renderButtonIcon(k_decline.input & -k_decline.input, 128, 208, 1);
                 }
-                if(fileWin[i] && i != worldFileCount) render16(18,i*32+8,24,208,0); // Render crown
-            }
-            offsetX = 0;offsetY = 0;
-        } else { // Enter new world name.
-            drawText("Enter a name",128,16);
-            drawText(fileNames[worldFileCount],(400-(strlen(fileNames[worldFileCount])*12))/2, 48);
-            
-            if(errorFileName > 0){
-                switch(errorFileName){// Error: Filename cannot already exist.
-                    case 1: drawTextColor("ERROR: Length cannot be 0!",(400-26*12)/2,200,0xFF1010AF); break;    
-                    case 2: drawTextColor("ERROR: You need Letters/Numbers!",(400-32*12)/2,200,0xFF1010AF); break;    
-                    case 3: drawTextColor("ERROR: Filename already exists!",(400-31*12)/2,200,0xFF1010AF); break;    
-                }    
-            }
-        }
-		sf2d_end_frame();
-		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-        if(!enteringName){ // World select
-            if(!areYouSure){
-                drawTextColor("Load World",100,12,0xFF3FFFFF);
-                drawText("Press   or   to scroll", 28, 50);
-                renderButtonIcon(k_up.input & -k_up.input, 98, 48, 1);
-                renderButtonIcon(k_down.input & -k_down.input, 160, 48, 1);
-                drawText("Press   to load world", (320-21*12)/2, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 104, 98, 1);
-                drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
-                if(currentSelection != worldFileCount){
-                    drawText("Press   to delete",(320-17*12)/2, 200);
-                    renderButtonIcon(k_delete.input & -k_delete.input, 128, 198, 1);
-                }
-            } else {
-                drawTextColor("Delete File?",88,12,0xFF3F3FFF);
-                drawText("Press   to confirm", (320-18*12)/2, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 122, 98, 1);
-                drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
-            }
-            
-        } else { // Draw the "keyboard"
-            drawTextColor("Touch the keypad below",(320-22*12)/2,12,0xFF33FFFF);
-            
-            sf2d_draw_rectangle(0, 50, 320, 110, 0xFF7F7FBF);
-            drawSizedText(guiText0,4, 60, 2);
-            drawSizedText(guiText1,4, 80, 2);
-            drawSizedText(guiText2,12, 100, 2);
-            drawSizedText(guiText3,28, 120, 2);
-            drawSizedText(guiText4,12, 140, 2);
-            
-            if(touchDelay > 0){
-                sf2d_draw_rectangle(touchX, touchY, touchW, touchH, 0xAF000000);
-            }
-            
-            drawText("Press   to confirm", (320-18*12)/2, 180);
-            renderButtonIcon(k_accept.input & -k_accept.input, 122, 178, 1);
-            drawText("Press   to return", 58, 210);
-            renderButtonIcon(k_decline.input & -k_decline.input, 128, 208, 1);
-        }
-            
-		sf2d_end_frame();
+            sf2d_end_frame();
         break;
         case MENU_SETTINGS_REBIND:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
 		        drawTextColor("Rebind Buttons",116,12,0xFF00AFAF);
                 drawText("Button",16,32);
                 drawText("Game",140,32);
@@ -951,20 +1065,22 @@ void renderMenu(int menu,int xscr,int yscr){
                 }
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
-		    if(!selBut){
-                drawText("Press   to select", 58, 80);
-                renderButtonIcon(k_accept.input & -k_accept.input, 128, 78, 1);
-                drawText("Press   to return", 58, 130);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 128, 1);
-            } else {
-                drawText("Press   or   to scroll", 28, 50);
-                renderButtonIcon(k_left.input & -k_left.input, 98, 48, 1);
-                renderButtonIcon(k_right.input & -k_right.input, 160, 48, 1);
-                drawText("Press   to unselect", 46, 100);
-                renderButtonIcon(k_accept.input & -k_accept.input, 118, 98, 1);
-                drawText("Press   to return", 58, 150);
-                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
-            }
+				sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				
+				if(!selBut){
+					drawText("Press   to select", 58, 80);
+					renderButtonIcon(k_accept.input & -k_accept.input, 128, 78, 1);
+					drawText("Press   to return", 58, 130);
+					renderButtonIcon(k_decline.input & -k_decline.input, 128, 128, 1);
+				} else {
+					drawText("Press   or   to scroll", 28, 50);
+					renderButtonIcon(k_left.input & -k_left.input, 98, 48, 1);
+					renderButtonIcon(k_right.input & -k_right.input, 160, 48, 1);
+					drawText("Press   to unselect", 46, 100);
+					renderButtonIcon(k_accept.input & -k_accept.input, 118, 98, 1);
+					drawText("Press   to return", 58, 150);
+					renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+				}
 		    sf2d_end_frame();
         break;
         
@@ -979,11 +1095,15 @@ void renderMenu(int menu,int xscr,int yscr){
 	            offsetX = 0;offsetY = 0;
                 renderFrame(1,1,24,14,0xFF1010AF);
                 drawText("Paused",164,32);
-                for(i = 2; i >= 0; --i){
+                for(i = 3; i >= 0; --i){
                     char* msg = pOptions[i];
                     u32 color = 0xFF7F7F7F;
                     if(i == currentSelection) color = 0xFFFFFFFF;
-                    drawTextColor(msg,(400 - (strlen(msg) * 12))/2, (i * 24) + 100, color);    
+					if(i == 1 && currentLevel==5) {
+						color = 0xFF7F7FFF;
+						if(i == currentSelection) color = 0xFFAFAFFF;
+					}
+                    drawTextColor(msg,(400 - (strlen(msg) * 12))/2, (i * 24) + 88, color);    
                 }
                 
                 if(pauseSaveDisplayTimer > 0) drawTextColor("Game Saved!", (400-(11*12))/2, 64,0xFF20FF20);
@@ -1014,7 +1134,7 @@ void renderMenu(int menu,int xscr,int yscr){
                 if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
                 else { opacity-=5; if(opacity == 100) rev = false; }
                 sprintf(scoreText,"Score: %d", player.p.score);
-                drawTextColor("You Win!",158,76,0xAFAF0000 + opacity);
+                drawTextColor("You Win!",158,76,0x0000AFAF + (opacity << 24));
                 drawText(scoreText, 200-((strlen(scoreText)-1)*6), 100);
                 drawText("Press   to continue", 96, 150);
                 renderButtonIcon(k_attack.input & -k_attack.input, 166, 148, 1);
@@ -1035,7 +1155,7 @@ void renderMenu(int menu,int xscr,int yscr){
                 if(!rev){ opacity+=5; if(opacity == 255) rev = true; }
                 else { opacity-=5; if(opacity == 100) rev = false; }
                 sprintf(scoreText,"Score: %d", player.p.score);
-                drawTextColor("You DIED!",158,76,0xAF000000 + opacity);
+                drawTextColor("You DIED!",158,76,0x000000AF + (opacity << 24));
                 drawText(scoreText, 200-((strlen(scoreText)-1)*6), 100);
                 drawText("Press   to continue", 96, 150);
                 renderButtonIcon(k_attack.input & -k_attack.input, 166, 148, 1);
@@ -1052,6 +1172,8 @@ void renderMenu(int menu,int xscr,int yscr){
 		            renderMenuBackground(xscr,yscr);
 	            offsetX = 0;offsetY = 0;
                 renderFrame(1,1,24,14,0xFFFF1010);
+				drawTextColor("Inventory",24+1,14+1,0xFF000000);
+				drawTextColor("Inventory",24,14,0xFF6FE2E2);
                 renderItemList(player.p.inv, 1,1,24,14, curInvSel);
 		    sf2d_end_frame();
         break;  
@@ -1066,8 +1188,14 @@ void renderMenu(int menu,int xscr,int yscr){
 	            offsetX = 0;offsetY = 0;
 	            
                 renderFrame(15,1,24,4,0xFFFF1010);
+				drawTextColor("Have",248+1,14+1,0xFF000000);
+				drawTextColor("Have",248,14,0xFF6FE2E2);
                 renderFrame(15,5,24,14,0xFFFF1010);
+				drawTextColor("Cost",248+1,78+1,0xFF000000);
+				drawTextColor("Cost",248,78,0xFF6FE2E2);
                 renderFrame(1,1,14,14,0xFFFF1010);
+				drawTextColor(currentCraftTitle,24+1,14+1,0xFF000000);
+				drawTextColor(currentCraftTitle,24,14,0xFF6FE2E2);
                 renderRecipes(currentRecipes, 1, 1, 14, 14, curInvSel);
                 
                 Recipe* rec = &currentRecipes->recipes[curInvSel];
@@ -1090,8 +1218,8 @@ void renderMenu(int menu,int xscr,int yscr){
                 
 		    sf2d_end_frame();
         break;  
-        
-        case MENU_CONTAINER:
+		
+		case MENU_CONTAINER:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
                 if(currentLevel == 0){ 
                     sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
@@ -1099,20 +1227,71 @@ void renderMenu(int menu,int xscr,int yscr){
                 }
 	            offsetX = xscr;offsetY = yscr;
 		            renderMenuBackground(xscr,yscr);
-		        if (curChestEntity->entityFurniture.r == 1){ offsetX = 48;offsetY = 0;}
+		        if (curChestEntity->entityFurniture.r == 1){ offsetX = 48; offsetY = 0;}
 		        else {offsetX = 0;offsetY = 0;}
 		        
-		        renderFrame(1,1,14,14,0xFFFF1010);
-		        renderItemList(curChestEntity->entityFurniture.inv,1,1,14,14,
+		        renderFrame(1,1,15,14,0xFFFF1010);
+				drawTextColor("Chest",24+1,14+1,0xFF000000);
+				drawTextColor("Chest",24,14,0xFF6FE2E2);
+		        renderItemList(curChestEntity->entityFurniture.inv,1,1,15,14,
                 curChestEntity->entityFurniture.r == 0 ? curInvSel : -curChestEntity->entityFurniture.oSel - 1);
-		        renderFrame(15,1,28,14,0xFFFF1010);
-		        renderItemList(player.p.inv,15,1,28,14,
+		        renderFrame(16,1,30,14,0xFFFF1010);
+				drawTextColor("Inventory",264+1,14+1,0xFF000000);
+				drawTextColor("Inventory",264,14,0xFF6FE2E2);
+		        renderItemList(player.p.inv,16,1,30,14,
                 curChestEntity->entityFurniture.r == 1 ? curInvSel : -curChestEntity->entityFurniture.oSel - 1);
 		        offsetX = 0;offsetY = 0;
 		    sf2d_end_frame();
         break;
+		
+		case MENU_DUNGEON:
+			sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                if(currentLevel == 0){ 
+                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
+                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
+                }
+	            offsetX = xscr;offsetY = yscr;
+		            renderMenuBackground(xscr,yscr);
+	            offsetX = 0;offsetY = 0;
+                renderFrame(1,1,24,14,0xFFFF1010);
+				if(currentLevel!=5) {
+					drawTextColor("Dungeon Entrance",24+1,14+1,0xFF000000);
+					drawTextColor("Dungeon Entrance",24,14,0xFF6FE2E2);
+					
+					drawText("Warning: ", 32, 32);
+					drawText("You need a Dungeon Key to   ", 32, 56);
+					drawText("enter and cannot save while ", 32, 72);
+					drawText("being in the Dungeon!       ", 32, 88);
+					drawText("After leaving you will need ", 32, 112);
+					drawText("a new Dungeon Key for       ", 32, 128);
+					drawText("entering another Dungeon!   ", 32, 144);
+					
+					drawText("   Enter", 148, 171);
+				} else {
+					drawTextColor("Dungeon Exit",24+1,14+1,0xFF000000);
+					drawTextColor("Dungeon Exit",24,14,0xFF6FE2E2);
+					
+					drawText("Warning: ", 32, 32);
+					drawText("The Dungeon and everything  ", 32, 56);
+					drawText("in it will disappear when   ", 32, 72);
+					drawText("you leave it!               ", 32, 88);
+					drawText("You will need a new Dungeon ", 32, 112);
+					drawText("Key for entering another    ", 32, 128);
+					drawText("Dungeon again!              ", 32, 144);
+					
+					drawText("   Leave", 148, 171);
+				}
+				
+                renderButtonIcon(k_accept.input & -k_accept.input, 150, 168, 1);
+                drawText("   Stay", 148, 195);
+                renderButtonIcon(k_decline.input & -k_decline.input, 150, 192, 1);
+		    sf2d_end_frame();
+		break;
+		
         case MENU_ABOUT:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
 		        drawText("About Minicraft",110,12);
 		        drawSizedText("Minicraft was made by Markus Persson for the",24,36,1.0);
 		        drawSizedText("22'nd ludum dare competition in december 2011.",16,48,1.0);
@@ -1122,20 +1301,29 @@ void renderMenu(int menu,int xscr,int yscr){
 		        drawTextColor("3DS Homebrew Edition",74,120,0xFF00FF00);
 		        drawSizedTextColor("This port was made by David Benepe (Davideesk)",16,144,1.0,0xFF00FF00);
 		        drawSizedTextColor("just for fun in September/October 2015.",44,156,1.0,0xFF00FF00);
-		        drawSizedTextColor("TY Notch for creating a fun game to remake!",28,180,1.0,0xFF00FF00);
+				drawSizedTextColor("Updated and modded by Andre Schweiger (andre111)",8,168,1.0,0xFF00FF00);
+		        drawSizedTextColor("TY Notch for creating a fun game to remake!",28,192,1.0,0xFF00FF00);
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-		        drawTextColor("Special Thanks to:",52,12,0xFF7F7FFF);
-		        drawTextColor("Smea",136,60,0xFF2020FF);
-		        drawSizedTextColor("for ctrulib",116,80,1.0,0xFF2020FF);
-		        drawTextColor("Xerpi",130,120,0xFFFF2020);
-		        drawSizedTextColor("for sf2dlib",116,140,1.0,0xFFFF2020);
+		        sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
+				drawTextColor("Special Thanks to:",52,12,0xFF7F7FFF);
+		        drawTextColor("Smea",136,50,0xFF2020FF);
+		        drawSizedTextColor("for ctrulib",116,70,1.0,0xFF2020FF);
+		        drawTextColor("Xerpi",130,100,0xFFFF2020);
+		        drawSizedTextColor("for sf2dlib",116,120,1.0,0xFFFF2020);
+				drawTextColor("Music from",100,150,0xFF20FF20);
+		        drawSizedTextColor("opengameart.org/content/",64,170,1.0,0xFF20FF20);
+				drawSizedTextColor("generic-8-bit-jrpg-soundtrack",48,180,1.0,0xFF20FF20);
+				
                 drawText("Press   to return", 58, 220);
                 renderButtonIcon(k_decline.input & -k_decline.input, 128, 218, 1);
 		    sf2d_end_frame();
         break;
         case MENU_SETTINGS:
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
 		        drawText("Settings",(400-(8*12))/2,30);
 		        for(i = 4; i >= 0; --i){
                     char* msg = setOptions[i];
@@ -1158,7 +1346,9 @@ void renderMenu(int menu,int xscr,int yscr){
                 }
 		    sf2d_end_frame();
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
-		        switch(currentSelection){
+		        sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+			
+				switch(currentSelection){
                     case 0:
                         drawTextColor("Change the controls",(320 - (19 * 12))/2,24,0xFF7FFFFF);
                         break;
@@ -1184,13 +1374,24 @@ void renderMenu(int menu,int xscr,int yscr){
         case MENU_TITLE:
             /* Top Screen */
 		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+				sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				//map BG
+				if(menuHasMapLoaded) {
+					offsetX = (int) mxscr; offsetY = (int) myscr;
+						renderBackground((int) mxscr, (int) myscr);
+					offsetX = 0; offsetY = 0;
+					
+					sf2d_draw_rectangle(0, 0, 400, 240, 0xAA0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				}
+			
 		        renderTitle(76,16);
 		    
-		        for(i = 4; i >= 0; --i){
+		        for(i = 5; i >= 0; --i){
                     char* msg = options[i];
                     u32 color = 0xFF7F7F7F;
                     if(i == currentSelection) color = 0xFFFFFFFF;
-                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 20 - 50) >> 1,2.0, color);    
+					drawSizedTextColor(msg,((200 - (strlen(msg) * 8))/2) + 1, (((8 + i) * 20 - 58) >> 1) + 1,2.0, 0xFF000000);   
+                    drawSizedTextColor(msg,(200 - (strlen(msg) * 8))/2, ((8 + i) * 20 - 58) >> 1,2.0, color);    
                 }
                 
 		        drawText(versionText,2,225);
@@ -1198,41 +1399,23 @@ void renderMenu(int menu,int xscr,int yscr){
 		    
             /* Bottom Screen */
 		    sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);	
-		      int startX = 0, startY = 0;// relative coordinates ftw
+				sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				//map BG
+				if(menuHasMapLoaded) {
+					offsetX = (int) mxscr + 20; offsetY = (int) myscr + 120;
+						renderBackground((int) mxscr + 20, (int) myscr + 120);
+					offsetX = 0; offsetY = 0;
+					
+					sf2d_draw_rectangle(0, 0, 320, 240, 0xAA0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+				}
+			
+			  int startX = 0, startY = 0;// relative coordinates ftw
 		        switch(currentSelection){
                     case 0: // "Start Game"
-                        startX = 20;startY = 50;
-                        render16(startX,startY+12,0,128,0);//Player(Carrying)
-                        render16(startX,startY,128,128,0);//Workbench
-                        startX = 120;startY = 20;
-                        render16b(startX,startY,16,96,0,0xFFC11D00);// water pit
-                        render16b(startX+16,startY,32,96,0,0xFFC11D00);
-                        render16b(startX,startY+16,48,96,0,0xFFC11D00);
-                        render16b(startX+16,startY+16,64,96,0,0xFFC11D00);
-                        renderc  (startX+8,startY+12,48,160,16,8,0);//Waves
-                        renderc  (startX+8,startY+8,0,112,16,8,0);//Player (Top-Half)
-                        startX = 110;startY = 76;
-                        render16 (startX,startY,48,112,0);//Player
-                        renderc  (startX+12,startY,40,160,8,16,0);//Slash
-                        render   (startX+14,startY+4,152,144,0);//Pickaxe
-                        render16b(startX+18,startY,80,0,0,0xFFAEC6DC);//Iron ore
-                        startX = 40;startY = 90;
-                        render16b (startX,startY,128,112,0,0xFFADFFAD);//Slime
-                        render16 (startX+18,startY,48,112,1);//Player (Mirrored)
-                        renderc  (startX+14,startY,32,160,8,16,0);//Slash
-                        render   (startX+12,startY+4,104,144,1);//Sword
-                        startX = 64;startY = 40;
-                        render16b(startX,startY,16,80,0,0xFF69B569);// grass pit
-                        render16b(startX+16,startY,32,80,0,0xFF69B569);
-                        render16b(startX,startY+16,48,80,0,0xFF69B569);
-                        render16b(startX+16,startY+16,64,80,0,0xFF69B569);
-                        render16 (startX+8,startY+4,0,16,0);//Tree
-                        render   (startX+1,startY+14,80,152,0);// Apple
-                        render16 (startX+9,startY+18,16,112,0);//Player
-                        renderc  (startX+9,startY+14,16,160,16,8,0);//Slash
-                        drawTextColor("Play minicraft",24,24,0xFF7FFFFF);
                         break;
-                    case 1: // "How To Play"
+                    case 1: // "Join Game"
+                        break;
+                    case 2: // "How To Play"
                         startX = 72;startY = 54;
                         render16(startX,startY,96,208,0);//C-PAD
                         startX = 72;startY = 37;
@@ -1247,23 +1430,102 @@ void renderMenu(int menu,int xscr,int yscr){
                         startX = 89;startY = 54;
                         render16(startX+16,startY,48,112,0);//Player
                         render16(startX,startY,160,208,0);//C-PAD right
-                        
                         drawTextColor("Learn the basics",64,24,0xFF7FFFFF);
                         break;
-                    case 2: // "Settings"
+                    case 3: // "Settings"
                         drawTextColor("Modify the game's feel",(320 - (22 * 12))/2,24,0xFF7FFFFF);
                         renderc(48,48,0,112,64,32,0);
                         break;
-                    case 3: // "About"
+                    case 4: // "About"
                         drawTextColor("Who made this game?",(320 - (19 * 12))/2,24,0xFF7FFFFF);
+                        
+                        // Secret code ;)
+                        //drawSizedText("497420776173206e6f746368",(320 - (24 * 8))/2,80,1);
+                        //drawSizedText("506f727465642062792044617669646565736b",(320 - (38 * 8))/2,88,1);
+                        //drawSizedText("576879207265616420746869733f",(320 - (28 * 8))/2,96,1);
+                        //drawSizedText("596f75207761737465642074696d65",(320 - (30 * 8))/2,104,1);
+                        //drawSizedText("4861204861204861204861204861",(320 - (28 * 8))/2,112,1);
+                        //drawSizedText("5468652063616b652069732061206c6965",(320 - (34 * 8))/2,120,1);
+                        //drawSizedText("4044617669646565736b2074776974746572",(320 - (36 * 8))/2,128,1);
+                        //drawSizedText("3533363536333732363537343231",(320 - (28 * 8))/2,136,1);
+                        //drawSizedText("4c69617220746578742062656c6f77",(320 - (30 * 8))/2,144,1);
+                        //drawSizedText("(Totally not a secret code or anything)",4,160,1);
+                         
                         break;
-                    case 4: // "Exit"
+                    case 5: // "Exit"
                         drawTextColor("Exit to the homebrew menu",(320 - (25 * 12))/2,24,0xFF7FFFFF);
                         drawTextColor("(bye-bye)",(320 - (9 * 12))/2,100,0xFF7FFFFF);
                         break;
                 }
 		    sf2d_end_frame();
-            break;
+        break;
+        case MENU_NPC:
+		    sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                if(currentLevel == 0){ 
+                    sf2d_draw_texture_part_scale(minimap[1],(-xscr/3)-256,(-yscr/3)-32,0,0,128,128,12.5,7.5);
+                    sf2d_draw_rectangle(0,0,400,240, 0xAFDFDFDF);
+                }
+	            offsetX = xscr;offsetY = yscr;
+		            renderMenuBackground(xscr,yscr);
+		        offsetX = 0;offsetY = 0;
+	            
+		        renderNPCMenu(xscr, yscr);
+		    sf2d_end_frame();
+        break;
+        case MENU_MULTIPLAYER:
+            sf2d_start_frame(GFX_TOP, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                offsetX = 0;offsetY = (currentSelection * 32) - 48;
+                drawText("Select a world",122,-16);
+                for(i = 0; i < networkGetScanCount(); ++i){
+                    int color = 0xFF921020;
+                    char * text = malloc((50+8+1) * sizeof(char));
+                    memset(text, 0, (50+8+1) * sizeof(char));
+                    networkGetScanName(text, i);
+                    strcpy(text, "'s World");
+                    
+                    if(i != currentSelection) color &= 0xFF7F7F7F; // Darken color.
+                    
+                    renderFrame(1,i*4,24,(i*4)+4,color);
+                    drawText(text,(400-(strlen(text)*12))/2,i*64+24);
+                    
+                    free(text);
+                }
+                offsetX = 0;offsetY = 0;
+            sf2d_end_frame();
+            sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+                sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+                
+                drawTextColor("Searching for Worlds",40,12,0xFF3FFFFF);
+                drawText("Press   or   to scroll", 28, 50);
+                renderButtonIcon(k_up.input & -k_up.input, 98, 48, 1);
+                renderButtonIcon(k_down.input & -k_down.input, 160, 48, 1);
+                drawText("Press   to join world", (320-21*12)/2, 100);
+                renderButtonIcon(k_accept.input & -k_accept.input, 104, 98, 1);
+                drawText("Press   to return", 58, 150);
+                renderButtonIcon(k_decline.input & -k_decline.input, 128, 148, 1);
+            sf2d_end_frame();
+        break;
     }
 
+}
+
+void menuRenderTilePit(int x,int y,int xt,int yt) {
+	render16(x+8,y+8,xt+48,yt,0);
+	
+	render(x,   y,   xt,   yt,  0);
+	render(x+24,y,   xt+8, yt,  0);
+	render(x,   y+24,xt,   yt+8,0);
+	render(x+24,y+24,xt+8, yt+8,0);
+	
+	render(x+8, y,   xt+16,yt,  0);
+	render(x+16,y,   xt+24,yt,  0);
+	render(x+8, y+24,xt+16,yt+8,0);
+	render(x+16,y+24,xt+24,yt+8,0);
+	
+	render(x,   y+8, xt+32,yt,  0);
+	render(x,   y+16,xt+32,yt,  0);
+	render(x+24,y+8, xt+40,yt,  0);
+	render(x+24,y+16,xt+40,yt,  0);
 }

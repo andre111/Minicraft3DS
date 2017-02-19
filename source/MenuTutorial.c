@@ -114,40 +114,34 @@ void renderTutorialPage(bool topScreen){
                 renderButtonIcon(k_attack.input & -k_attack.input, 80, 56, 2);
                 renderc(60,68,16,160,16,8,2);//Slash
                 
-                render16b(12,20,16,80,0,0xFF69B569);// grass pit
-                render16b(12+16,20,32,80,0,0xFF69B569);
-                render16b(12,20+16,48,80,0,0xFF69B569);
-                render16b(12+16,20+16,64,80,0,0xFF69B569);
-                render16(12+8,20+4,0,16,0);//Tree
+				menuRenderTilePit(12,20,256,0);// grass pit
+                render16(12+8,20+4,256,48,0);//Tree
                 renderc(12+9,20+14,16,160,16,8,0);//Slash
                 render(12+9+4,20+14,192,144,0);//Axe
                 render16(12+9,20+18,16,112,0);//Player-up
                 
-                render16b(122,62,16,80,0,0xFF7BF7F7);// sand pit
-                render16b(122+16,62,32,80,0,0xFF7BF7F7);
-                render16b(122,62+16,48,80,0,0xFF7BF7F7);
-                render16b(122+16,62+16,64,80,0,0xFF7BF7F7);
-                render16b(130,70,0,96,0,0xFF383838);// hole
+                menuRenderTilePit(122,62,320,0);// sand pit
+                render16(130,70,256,16,0);// hole
                 render16(116,70,48,112,0);//Player-right
-                renderb(136,76,16,152,0,0xFF8197AF);// Dirt item
+                renderb(136,76,16,152,0,sandColor);// Sand item
                 renderc(128,70,40,160,8,16,0);//Slash
                 render(130,74,0,144,0);//Shovel
                 break;
             case 2: // Inventory
-                renderFrame(4,4,17,11,0xFFAF0000);
+                renderFrame(4,4,17,11,0xFFFF1010);
                 renderItemStuffWithText(ITEM_APPLE,5,false,80,78);
                 renderItemStuffWithText(ITEM_SLIME,11,false,80,94);
                 renderItemStuffWithText(TOOL_SWORD,4,true,80,110);
                 renderItemStuffWithText(ITEM_IRONORE,3,false,80,126);
                 renderItemStuffWithText(ITEM_IRONINGOT,11,false,80,142);
-                sf2d_draw_rectangle(64, 110, 12, 12, 0xFF000000);
+                sf2d_draw_rectangle(64, 110, 12, 12, 0xFF);
 		        drawText(">", 64, 110);
                 renderButtonIcon(biasedCirclePad(k_up.input), 44, 92, 1);
                 renderButtonIcon(k_accept.input & -k_accept.input, 44, 108, 1);
                 renderButtonIcon(biasedCirclePad(k_down.input), 44, 125, 1);
                 break;
             case 3: // Furniture
-                sf2d_draw_rectangle(64, 48, 192, 32, 0xFF69B569);
+                sf2d_draw_rectangle(64, 48, 192, 32, grassColor);
                 renderc(32,24,64,128,96,16,0);//Furniture entities
                 
                 renderFurniture(ITEM_WORKBENCH, 50,60);
@@ -169,33 +163,33 @@ void renderTutorialPage(bool topScreen){
                 drawText("16/5", 206, 130);
                 break;
             case 5: // Farming (Bottom screen)
-                renderc(24,16,144,0,112,16,0); // Wheat Stages
+                renderc(24,16,352,48,112,16,0); // Wheat Stages
                 
-                render16(20,40,144,0,0); // Farm Tile
-                render16(36,40,240,0,0); // Wheat Tile
-                render16(52,40,240,0,0); // Wheat Tile
+                render16(20,40,352,48,0); // Farm Tile
+                render16(36,40,448,48,0); // Wheat Tile
+                render16(52,40,448,48,0); // Wheat Tile
                 render16(20,54,16,112,0); // Player (Up)
                 renderc(20,50,16,160,16,8,0); // Slash (Up)
                 render(19,45,40,152,0); // Seeds
                 render(26,39,48,152,0); // Wheat1
                 render(29,44,48,152,0); // Wheat2
                 
-                renderc(72,40,144,0,32,16,0); // Farm Tile + Seeded Wheat Tile
+                renderc(72,40,352,48,32,16,0); // Farm Tile + Seeded Wheat Tile
                 render16(72,54,16,112,0); // Player (Up)
                 renderc(72,50,16,160,16,8,0); // Slash (Up)
                 render(76,48,40,152,0); // Seeds
                 
                 sf2d_draw_rectangle(216, 80, 32, 32, dirtColor[1]); // Dirt color for grass
-                render16b(108, 40, 0, 80, 0, 0xFF69B569); // Grass
-                render16(124, 40,144,0,0); // Farm Tile
+                render16(108, 40, 256, 0, 0); // Grass
+                render16(124, 40,352,48,0); // Farm Tile
                 render16(108,54,16,112,0); // Player (Up)
                 renderc(108,50,16,160,16,8,0); // Slash (Up)
                 render(112,48,72,144,0); // Gem Hoe
                 
                 sf2d_draw_rectangle(112, 156, 32, 32, dirtColor[1]); // Dirt color for grass
-                render16b(56, 78, 0, 80, 0, 0xFF69B569); // Grass
+                render16(56, 78, 256, 0, 0); // Grass
                 sf2d_draw_rectangle(80, 156, 32, 32, dirtColor[1]); // Dirt color
-                render16b(40, 78, 0, 0, 0, 0xFF8F8FA8); // Dirt Dots
+                render16(40, 78, 336, 80, 0); // Dirt Dots
                 render(44, 82, 40,152,0); // Seeds
                 
                 render16(24,78,48,112,0); // Player (Right)
@@ -212,24 +206,24 @@ void renderTutorialPage(bool topScreen){
                 render(132,82,72,152,0); // Bread
                 break;
             case 6: //Mining
-                render16b(23,32,80,0,0,0xFFC8C8DF); // iron ore
-                render16b(23,52,80,0,0,0xFFB9E8E5); // gold ore
-                render16b(23,72,80,0,0,0xFFDE98DF); // gem ore
-                renderb(41,38,88,152,0,0xFFC8C8DF); // Iron ore item
-                renderb(41,58,88,152,0,0xFFB9E8E5); // Gold ore item
+                render16(23,32,464,48,0); // iron ore
+                render16(23,52,480,48,0); // gold ore
+                render16(23,72,496,48,0); // gem ore
+                renderb(41,38,88,152,0,ironColor); // Iron ore item
+                renderb(41,58,88,152,0,goldColor); // Gold ore item
                 render(41,78,112,152,0); // Gem item
                 drawText(">",104,74);
                 drawText(">",104,114);
                 drawText(">",104,154);
                 render16(60,32,112,128,0); // Furnace
                 render16(60,52,112,128,0); // Furnace
-                render16(60,72,64,128,0); // Anvil
+                render16(60,72,240,128,0); // Enchanter
                 drawText(">",160,74);
                 drawText(">",160,114);
                 drawText(">",160,154);
-                renderb(88,36,96,152,0,0xFFC8C8DF); // Iron ingot item
-                renderb(88,56,96,152,0,0xFFB9E8E5); // Gold ingot item
-                renderb(88,76,152,144,0,0xFFB9E8E5); // Gem Pickaxe
+                renderb(88,36,96,152,0,ironColor); // Iron ingot item
+                renderb(88,56,96,152,0,goldColor); // Gold ingot item
+                renderb(88,76,152,144,0,goldColor); // Gem Pickaxe
                 drawText(">",200,74);
                 drawText(">",200,114);
                 render16(106,32,64,128,0); // Anvil

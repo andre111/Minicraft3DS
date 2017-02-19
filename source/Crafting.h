@@ -26,6 +26,10 @@ RecipeManager workbenchRecipes;
 RecipeManager furnaceRecipes;
 RecipeManager ovenRecipes;
 RecipeManager anvilRecipes;
+RecipeManager loomRecipes;
+RecipeManager enchanterRecipes;
+
+Recipe defineRecipe(int item, int amountOrLevel, int numArgs, ...);
 
 void checkCanCraftRecipes(RecipeManager * rm, Inventory * inv);
 void sortRecipes(RecipeManager * rm);

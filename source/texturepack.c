@@ -114,11 +114,8 @@ int loadTexturePack(char * filename){
                     return 7;
                 }
 	           icons = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
-	           dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
-	           dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
-	           dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
-	           dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
-	           dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
+	           
+			   reloadColors();
 	           
 	           useDefaultIcons = false;
 
@@ -158,11 +155,7 @@ int loadTexturePack(char * filename){
     
     if(useDefaultIcons){
         icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
-        dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
-        dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
-        dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
-        dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
-        dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4));     
+        reloadColors();
     }
     if(useDefaultFont) font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
     if(useDefaultBottom) bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);

@@ -42,8 +42,39 @@
 #define ITEM_FURNACE 31
 #define ITEM_WORKBENCH 32
 #define ITEM_LANTERN 33
-#define TOOL_BOW 34
-#define ITEM_ARROW 35
+
+#define ITEM_LOOM 34
+#define ITEM_ENCHANTER 35
+
+#define ITEM_WALL_WOOD 51
+#define ITEM_WALL_STONE 52
+#define ITEM_WALL_IRON 53
+#define ITEM_WALL_GOLD 54
+#define ITEM_WALL_GEM 55
+#define ITEM_WOOL 56
+#define ITEM_STRING 57
+#define ITEM_PORK_RAW 58
+#define ITEM_PORK_COOKED 59
+#define ITEM_BEEF_RAW 60
+#define ITEM_BEEF_COOKED 61
+#define ITEM_LEATHER 62
+#define ITEM_ARROW_WOOD 63
+#define ITEM_ARROW_STONE 64
+#define ITEM_ARROW_IRON 65
+#define ITEM_ARROW_GOLD 66
+#define ITEM_ARROW_GEM 67
+#define ITEM_BONE 68
+#define ITEM_DUNGEON_KEY 69
+#define ITEM_WIZARD_SUMMON 70
+#define ITEM_DRAGON_EGG 71
+#define ITEM_DRAGON_SCALE 72
+#define ITEM_BOOKSHELVES 73
+#define ITEM_MAGIC_DUST 74
+#define ITEM_COIN 75
+
+#define TOOL_BUCKET 101
+#define TOOL_BOW 102
+#define TOOL_MAGIC_COMPASS 103
 
 typedef struct Inventory Inventory;
 

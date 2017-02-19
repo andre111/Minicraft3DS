@@ -65,6 +65,25 @@ Entity newFurnitureEntity(int itemID,Inventory * invPtr, int x, int y, int level
     return e;
 }
 
+Entity newPassiveEntity(int type, int x, int y, int level){
+	Entity e;
+    e.type = ENTITY_PASSIVE;
+    e.level = level;
+    e.x = x;
+    e.y = y;
+    e.hurtTime = 0;
+    e.xKnockback = 0;
+    e.yKnockback = 0;
+    e.passive.mtype = type;
+    e.passive.health = 20;
+    e.passive.dir = 0;
+	e.passive.xa = 0;
+	e.passive.ya = 0;
+    e.xr = 4;
+    e.yr = 3;
+    e.canPass = false;
+    return e;
+}
 
 Entity newZombieEntity(int lvl, int x, int y, int level){
     Entity e;
@@ -75,17 +94,72 @@ Entity newZombieEntity(int lvl, int x, int y, int level){
     e.hurtTime = 0;
     e.xKnockback = 0;
     e.yKnockback = 0;
-    e.zombie.lvl = lvl;
-    e.zombie.health = lvl * lvl * 10;
-    e.zombie.dir = 0;
+    e.hostile.lvl = lvl;
+	e.hostile.xa = 0;
+	e.hostile.ya = 0;
+    e.hostile.health = lvl * lvl * 10;
+    e.hostile.dir = 0;
     e.xr = 4;
     e.yr = 3;
     e.canPass = false;
     switch(lvl){
-        case 2: e.zombie.color = 0xFF8282CC; break;
-        case 3: e.zombie.color = 0xFFEFEFEF; break;
-        case 4: e.zombie.color = 0xFFAA6262; break;
-        default: e.zombie.color = 0xFF95DB95; break;
+        case 2: e.hostile.color = 0xFF8282CC; break;
+        case 3: e.hostile.color = 0xFFEFEFEF; break;
+        case 4: e.hostile.color = 0xFFAA6262; break;
+        default: e.hostile.color = 0xFF95DB95; break;
+    }
+    return e;
+}
+
+Entity newSkeletonEntity(int lvl, int x, int y, int level){
+    Entity e;
+    e.type = ENTITY_SKELETON;
+    e.level = level;
+    e.x = x;
+    e.y = y;
+    e.hurtTime = 0;
+    e.xKnockback = 0;
+    e.yKnockback = 0;
+    e.hostile.lvl = lvl;
+	e.hostile.xa = 0;
+	e.hostile.ya = 0;
+    e.hostile.health = lvl * lvl * 10;
+    e.hostile.dir = 0;
+	e.hostile.randAttackTime = 0;
+    e.xr = 4;
+    e.yr = 3;
+    e.canPass = false;
+    switch(lvl){
+        case 2: e.hostile.color = 0xFFC4C4C4; break;
+        case 3: e.hostile.color = 0xFFA0A0A0; break;
+        case 4: e.hostile.color = 0xFF7A7A7A; break;
+        default: e.hostile.color = 0xFFFFFFFF; break;
+    }
+    return e;
+}
+
+Entity newKnightEntity(int lvl, int x, int y, int level){
+    Entity e;
+    e.type = ENTITY_KNIGHT;
+    e.level = level;
+    e.x = x;
+    e.y = y;
+    e.hurtTime = 0;
+    e.xKnockback = 0;
+    e.yKnockback = 0;
+    e.hostile.lvl = lvl;
+	e.hostile.xa = 0;
+	e.hostile.ya = 0;
+    e.hostile.health = lvl * lvl * 20;
+    e.hostile.dir = 0;
+    e.xr = 4;
+    e.yr = 3;
+    e.canPass = false;
+    switch(lvl){
+        case 2: e.hostile.color = 0xFF0000C6; break;
+        case 3: e.hostile.color = 0xFF00A3C6; break;
+        case 4: e.hostile.color = 0xFF707070; break;
+        default: e.hostile.color = 0xFFFFFFFF; break;
     }
     return e;
 }
@@ -126,7 +200,7 @@ Entity newAirWizardEntity(int x, int y, int level){
     e.xKnockback = 0;
     e.yKnockback = 0;
     e.wizard.dir = 0;
-    e.wizard.health = 6666;
+    e.wizard.health = 2000;
 	e.wizard.attackDelay = 0;
 	e.wizard.attackTime = 0;
 	e.wizard.attackType = 0;
@@ -141,6 +215,7 @@ Entity newAirWizardEntity(int x, int y, int level){
 Entity newSparkEntity(Entity* parent, float xa, float ya){
     Entity e;
     e.type = ENTITY_SPARK;
+	e.level = parent->level;
     e.spark.age = 0;
     e.spark.parent = parent;
     e.spark.xa = xa;
@@ -150,6 +225,60 @@ Entity newSparkEntity(Entity* parent, float xa, float ya){
     e.xr = 3;
     e.yr = 3;
     e.canPass = true;
+    return e;
+}
+
+Entity newDragonEntity(int x, int y, int level) {
+	Entity e;
+	e.type = ENTITY_DRAGON;
+    e.level = level;
+    e.x = x;
+    e.y = y;
+    e.hurtTime = 0;
+    e.xKnockback = 0;
+    e.yKnockback = 0;
+    e.dragon.dir = 0;
+    e.dragon.health = 2000;
+	e.dragon.attackDelay = 0;
+	e.dragon.attackTime = 0;
+	e.dragon.attackType = 0;
+	e.dragon.animTimer = 0;
+    e.dragon.xa = 0;
+    e.dragon.ya = 0;
+    e.xr = 8;
+    e.yr = 8;
+    e.canPass = false;
+	return e;
+}
+
+Entity newDragonFireEntity(Entity* parent, u8 type, int x, int y, float xa, float ya) {
+	Entity e;
+    e.type = ENTITY_DRAGONPROJECTILE;
+	e.level = parent->level;
+    e.dragonFire.age = 0;
+	e.dragonFire.type = type;
+    e.dragonFire.parent = parent;
+    e.dragonFire.xa = xa;
+    e.dragonFire.ya = ya;
+    e.dragonFire.xx = x;
+    e.dragonFire.yy = y;
+	e.x = (int) x;
+	e.y = (int) y;
+    e.xr = 3;
+    e.yr = 3;
+    e.canPass = true;
+    return e;
+}
+
+Entity newMagicPillarEntity(int x, int y, int level){
+	Entity e;
+    e.type = ENTITY_MAGIC_PILLAR;
+	e.level = level;
+	e.x = x;
+	e.y = y;
+    e.xr = 3;
+    e.yr = 3;
+    e.canPass = false;
     return e;
 }
 
@@ -185,13 +314,60 @@ Entity newSmashParticleEntity(int x, int y, int level){
     return e;
 }
 
+Entity newArrowEntity(Entity* parent, int itemID, s8 xa, s8 ya, int level){
+	Entity e;
+    e.type = ENTITY_ARROW;
+	e.level = level;
+    e.arrow.age = 0;
+    e.arrow.parent = parent;
+	e.arrow.itemID = itemID;
+    e.arrow.xa = xa;
+    e.arrow.ya = ya;
+    e.x = parent->x;
+    e.y = parent->y;
+    e.xr = 2;
+    e.yr = 2;
+    e.canPass = false;
+	e.canSwim = true;
+    return e;
+}
+
+Entity newGlowwormEntity(int x, int y, int level){
+    Entity e;
+    e.type = ENTITY_GLOWWORM;
+    e.level = level;
+	e.glowworm.xa = 0;
+	e.glowworm.ya = 0;
+	e.glowworm.randWalkTime = 0;
+	e.glowworm.waitTime = 0;
+	e.x = x;
+    e.y = y;
+    e.canPass = true;
+    return e;
+}
+
+Entity newNPCEntity(int type, int x, int y, int level){
+	Entity e;
+    e.type = ENTITY_NPC;
+    e.level = level;
+    e.x = x;
+    e.y = y;
+    e.hurtTime = 0;
+    e.xKnockback = 0;
+    e.yKnockback = 0;
+    e.npc.type = type;
+    e.xr = 4;
+    e.yr = 3;
+    e.canPass = false;
+    return e;
+}
+
 void addEntityToList(Entity e, EntityManager* em){
     e.slotNum = em->lastSlot[e.level];
     em->entities[e.level][em->lastSlot[e.level]] = e;
     ++em->lastSlot[e.level];
 }
 
-Entity nullEntity;
 void removeEntityFromList(Entity * e,int level,EntityManager* em){
     int i;
     if(em->entities[level][e->slotNum].type == ENTITY_TEXTPARTICLE) free(em->entities[level][e->slotNum].textParticle.text);

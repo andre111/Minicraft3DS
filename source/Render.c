@@ -15,7 +15,6 @@ void render(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
 	sf2d_draw_texture_part_scale(icons, xp << 1, yp << 1, xTile, yTile, 8, 8,
 			scaleX, scaleY);
 }
-
 void renderb(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits, u32 color) {
 	xp -= offsetX;
 	yp -= offsetY;
@@ -143,6 +142,22 @@ void render16s(s32 xp, s32 yp, u32 tile, u8 bits, u32 color) {
 			16, 16, scaleX, scaleY, color);
 }
 
+void render32(s32 xp, s32 yp, u32 xTile, u32 yTile, u8 bits) {
+	xp -= offsetX;
+	yp -= offsetY;
+	int scaleX = 2, scaleY = 2;
+	if ((bits & 1) > 0) {
+		scaleX = -2;
+		xp += 32;
+	}
+	if ((bits & 2) > 0) {
+		scaleY = -2;
+		yp += 32;
+	}
+	sf2d_draw_texture_part_scale(icons, xp << 1, yp << 1, xTile, yTile, 32, 32,
+			scaleX, scaleY);
+}
+
 void renderTitle(int x, int y) {
 	sf2d_draw_texture_part_scale(icons, (x - 26) << 1, y << 1, 0, 240, 104, 16,
 			2.0, 2.0); // MINICRAFT
@@ -257,201 +272,86 @@ void renderFrame(int x1, int y1, int x2, int y2, u32 bgColor) {
 	}
 }
 
-void renderDotsWithColor(int val, int x, int y, u8 bits, u32 color) {
-	switch (val) {
-	case 3:
-		renderb(x, y, 0, 0, bits, color);
-		return;
-	case 5:
-		renderb(x + 8, y, 8, 0, bits, color);
-		return;
-	case 7:
-		renderbc(x, y, 0, 0, 16, 8, bits, color);
-		return;
-	case 10:
-		renderb(x, y + 8, 0, 8, bits, color);
-		return;
-	case 11:
-		renderbc(x, y, 0, 0, 8, 16, bits, color);
-		return;
-	case 12:
-		renderb(x + 8, y + 8, 8, 8, bits, color);
-		return;
-	case 13:
-		renderbc(x + 8, y, 8, 0, 8, 16, bits, color);
-		return;
-	case 14:
-		renderbc(x, y + 8, 0, 8, 16, 8, bits, color);
-		return;
-	case 15:
-		render16b(x, y, 0, 0, bits, color);
-		return;
-	}
-}
-
-void renderRockDotsWithColor(int val, int x, int y, u32 color) {
-	switch (val) {
-	case 208:
-		render16b(x, y, 0, 0, 0, color);
-		return;
-	case 16:
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		return;
-	case 32:
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 48:
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 64:
-		renderb(x, y, 0, 0, 0, color);
-		return;
-	case 80:
-		renderbc(x, y, 0, 0, 8, 16, 0, color);
-		return;
-	case 96:
-		renderbc(x + 8, y, 8, 0, 8, 16, 0, color);
-		return;
-	case 112:
-		renderbc(x, y + 8, 0, 8, 16, 8, 0, color);
-		return;
-	case 128:
-		renderbc(x, y, 0, 0, 16, 8, 0, color);
-		return;
-	case 144:
-		renderb(x, y + 8, 0, 8, 0, color);
-		renderbc(x + 8, y, 8, 0, 8, 16, 0, color);
-		return;
-	case 160:
-		renderb(x, y, 0, 0, 0, color);
-		renderbc(x + 8, y, 8, 0, 8, 16, 0, color);
-		return;
-	case 176:
-		renderb(x + 8, y, 8, 0, 0, color);
-		renderbc(x, y, 0, 0, 8, 16, 0, color);
-		return;
-	case 192:
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		renderbc(x, y, 0, 0, 8, 16, 0, color);
-		return;
-	case 4112:
-		renderbc(x, y, 0, 0, 8, 16, 0, color);
-		return;
-	case 4128:
-		renderbc(x, y + 8, 0, 8, 8, 16, 0, color);
-		return;
-	case 4192:
-		renderb(x, y, 0, 0, 0, color);
-		return;
-	case 8192:
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 8208:
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		return;
-	case 8224:
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		return;
-	case 8240:
-		renderb(x + 8, y, 8, 0, 0, color);
-		return;
-	case 8256:
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 8272:
-		renderb(x + 8, y, 8, 0, 0, color);
-		return;
-	case 8288:
-		renderb(x, y, 0, 0, 0, color);
-		return;
-	case 8304:
-		renderb(x + 8, y, 8, 0, 0, color);
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 8320:
-		renderbc(x + 8, y, 8, 0, 8, 16, 0, color);
-		return;
-	case 8336:
-		renderbc(x, y, 0, 0, 8, 16, 0, color);
-		return;
-	case 8352:
-		renderb(x, y, 0, 0, 0, color);
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		return;
-	case 8368:
-		renderb(x + 8, y, 8, 0, 0, color);
-		return;
-	case 8384:
-		renderb(x, y + 8, 0, 8, 0, color);
-		return;
-	case 8400:
-		renderb(x, y, 0, 0, 0, color);
-		return;
-	case 8416:
-		renderb(x + 8, y + 8, 8, 8, 0, color);
-		return;
-	}
-}
-
 void bakeLights() {
 	playerLightBake = sf2d_create_texture(64, 64, TEXFMT_RGBA8, SF2D_PLACE_RAM);
-	lanternLightBake = sf2d_create_texture(128, 128, TEXFMT_RGBA8,
-			SF2D_PLACE_RAM);
+	lanternLightBake = sf2d_create_texture(128, 128, TEXFMT_RGBA8, SF2D_PLACE_RAM);
+	
+	glowwormLightBake = sf2d_create_texture(32, 32, TEXFMT_RGBA8, SF2D_PLACE_RAM);
+	glowwormBigLightBake = sf2d_create_texture(64, 64, TEXFMT_RGBA8, SF2D_PLACE_RAM);
 
 	bakeLight(playerLightBake, 32, 32, 32);
 	bakeLight(lanternLightBake, 64, 64, 64);
+	
+	bakeLight(glowwormLightBake, 8, 8, 8);
+	bakeLight(glowwormBigLightBake, 12, 12, 12);
 }
 
 void freeLightBakes() {
 	sf2d_free_texture(playerLightBake);
 	sf2d_free_texture(lanternLightBake);
+	
+	sf2d_free_texture(glowwormLightBake);
+	sf2d_free_texture(glowwormBigLightBake);
 }
 
-void renderLightsToStencil() {
-	if (currentLevel > 1) {
-		GPU_SetDepthTestAndWriteMask(true, GPU_NEVER, 0);
-		GPU_SetStencilTest(true, GPU_NEVER, 1, 0xFF, 0xFF);
-		GPU_SetStencilOp(GPU_STENCIL_REPLACE, GPU_STENCIL_KEEP,
-				GPU_STENCIL_KEEP);
-		GPU_SetAlphaTest(true, GPU_GREATER, 0);
+void renderLightsToStencil(bool force, bool invert, bool rplayer) {
+	if (force || (currentLevel > 1 && currentLevel != 5)) {
+		C3D_DepthTest(true, GPU_NEVER, 0);
+		C3D_StencilTest(true, GPU_NEVER, 1, 0xFF, 0xFF);
+		C3D_StencilOp(GPU_STENCIL_REPLACE, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+		C3D_AlphaTest(true, GPU_GREATER, 0);
+		
 
         if(player.p.activeItem->id == ITEM_LANTERN) renderLight(player.x, player.y, lanternLightBake);
-        else renderLight(player.x, player.y, playerLightBake);
+        else if(rplayer) renderLight(player.x, player.y, playerLightBake);
         
 		int i;
 		for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
 			Entity e = eManager.entities[currentLevel][i];
-			if (e.type != ENTITY_FURNITURE)continue;
-			if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160 
-            && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125)
-			renderLight(e.x, e.y, lanternLightBake);
+			if (e.type == ENTITY_FURNITURE) {
+				if (e.entityFurniture.itemID == ITEM_LANTERN && e.x > player.x - 160 && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125)
+					renderLight(e.x, e.y, lanternLightBake);
+			} else if(e.type == ENTITY_GLOWWORM && e.x > player.x - 160 && e.y > player.y - 125 && e.x < player.x + 160 && e.y < player.y + 125) { //TODO could be made smaller becuase of smaller light radius
+				if(rand()%10==0) continue;
+				else if(rand()%100==0) renderLight(e.x+20, e.y-20, glowwormBigLightBake);
+				else renderLight(e.x+8, e.y-8, glowwormLightBake);
+			}
 		}
 		
 		int xo = offsetX >> 4;
 		int yo = offsetY >> 4;
 		int x, y;
+		//added offset to render lights from lava which is offscreen
+		//TODO: Even this is not performant enough for old 3DS, when there is a lot of lava on screen
+		for (x = xo-2; x <= 13 + xo+2; ++x) {
+			for (y = yo-2; y <= 8 + yo+2; ++y) {
+			    if(getTile(x, y) == TILE_LAVA) {
+					//experimental "speedhack"
+					if(getTile(x+1,y)==TILE_LAVA && getTile(x-1,y)==TILE_LAVA && getTile(x,y+1)==TILE_LAVA && getTile(x,y-1)==TILE_LAVA) {
+						if((x+y)%2 == 0) continue;
+					}
+					renderLight((x << 4) + 8, (y << 4) + 8, playerLightBake);
+				}
+			}
+		}
 		
-		if(currentLevel == 4){
-		  for (x = xo-2; x <= 13 + xo+2; ++x) {
-			 for (y = yo-2; y <= 8 + yo+2; ++y)
-			     if(getTile(x, y) == TILE_LAVA) renderLight(x << 4, y << 4, playerLightBake);
-		  }
-        }
-		
-		
-		GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
-		GPU_SetStencilTest(true, GPU_EQUAL, 1, 0xFF, 0x0);
-		GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
-		GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP,
-				GPU_STENCIL_REPLACE);
+
+		C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+		if(invert) {
+			C3D_StencilTest(true, GPU_EQUAL, 0, 0xFF, 0x0);
+		} else {
+			C3D_StencilTest(true, GPU_EQUAL, 1, 0xFF, 0x0);
+		}
+		C3D_AlphaTest(false, GPU_ALWAYS, 0x00);
+		C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
 	}
 }
 
 void resetStencilStuff() {
-	if (currentLevel > 1) {
-		GPU_SetStencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
-		GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
-	}
+	//if (currentLevel > 1) {
+		C3D_StencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
+		C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+	//}
 }
 
 void renderLight(int x, int y, sf2d_texture* texture) {
@@ -483,187 +383,398 @@ void bakeLight(sf2d_texture* texture, int x, int y, int r) {
 		for (xx = x0; xx < x1; xx++) {
 			int xd = xx - x;
 			int dist = xd * xd + yd;
-			if (dist <= r * r)
-				if ((dist >= (r - (r / 6)) * (r - (r / 5))) ? rand() % 4 != 0 : true)
-					sf2d_set_pixel(texture, xx, yy, RGBA8(0, 0, 0, 255)); // set transparent pixel
+			if (dist <= r * r) {
+				if (dist >= (r - (r / 5)) * (r - (r / 5))) {
+					if ((xd % 2 == 0 && yd % 2 != 0) || (xd % 2 != 0 && yd % 2 == 0)) { // rand() % 4 != 0
+						sf2d_set_pixel(texture, xx, yy, 0xFF000000); //RGBA8(0, 0, 0, 255)); // set transparent pixel
+					}
+				} else {
+					sf2d_set_pixel(texture, xx, yy, 0xFF000000); //RGBA8(0, 0, 0, 255)); // set transparent pixel
+				}
+			}
 		}
 	}
 
 	sf2d_texture_tile32(texture);
 }
 
-u8 checkSurrTiles8(int xt, int yt, int id) {
-	u8 vt = 0;
-	if (getTile(xt, yt - 1) == id)
-		vt |= 1;
-	if (getTile(xt - 1, yt) == id)
-		vt |= 2;
-	if (getTile(xt + 1, yt) == id)
-		vt |= 4;
-	if (getTile(xt, yt + 1) == id)
-		vt |= 8;
-	if (getTile(xt - 1, yt - 1) == id)
-		vt |= 16;
-	if (getTile(xt + 1, yt - 1) == id)
-		vt |= 32;
-	if (getTile(xt - 1, yt + 1) == id)
-		vt |= 64;
-	if (getTile(xt + 1, yt + 1) == id)
-		vt |= 128;
-	return vt;
-}
-u8 checkSurrTiles4(int xt, int yt, int id) {
-	u8 vt = 0;
-	if (getTile(xt, yt - 1) == id)
-		vt |= 1;
-	if (getTile(xt - 1, yt) == id)
-		vt |= 2;
-	if (getTile(xt + 1, yt) == id)
-		vt |= 4;
-	if (getTile(xt, yt + 1) == id)
-		vt |= 8;
-	return vt;
+bool tu = false;
+bool td = false;
+bool tl = false;
+bool tr = false;
+
+bool tul = false;
+bool tur = false;
+bool tdl = false;
+bool tdr = false;
+
+void renderDots(int x, int y, u8 bits1, u8 bits2, u8 bits3, u8 bits4, u32 xTile, u32 yTile) {
+	//another speedhack for o3DS
+	if(tu && tl && tr && td) {
+		render16(x, y, xTile, yTile, bits1);
+		return;
+	}
+	
+	if(tu && tl) render(x, y, xTile, yTile, bits1);
+	if(tu && tr) render(x + 8, y, xTile+8, yTile, bits2);
+	if(td && tl) render(x, y + 8, xTile, yTile+8, bits3);
+	if(td && tr) render(x + 8, y + 8, xTile+8, yTile+8, bits4);
 }
 
-u8 v = 0;
+void resetSurrTiles() {
+	tu = false;
+	td = false;
+	tl = false;
+	tr = false;
+
+	tul = false;
+	tur = false;
+	tdl = false;
+	tdr = false;
+}
+
+void checkSurrTiles8(int xt, int yt, int id) {
+	if (getTile(xt, yt - 1) == id)
+		tu = true;
+	if (getTile(xt - 1, yt) == id)
+		tl = true;
+	if (getTile(xt + 1, yt) == id)
+		tr = true;
+	if (getTile(xt, yt + 1) == id)
+		td = true;
+	if (getTile(xt - 1, yt - 1) == id)
+		tul = true;
+	if (getTile(xt + 1, yt - 1) == id)
+		tur = true;
+	if (getTile(xt - 1, yt + 1) == id)
+		tdl = true;
+	if (getTile(xt + 1, yt + 1) == id)
+		tdr = true;
+}
+void checkSurrTiles4(int xt, int yt, int id) {
+	if (getTile(xt, yt - 1) == id)
+		tu = true;
+	if (getTile(xt - 1, yt) == id)
+		tl = true;
+	if (getTile(xt + 1, yt) == id)
+		tr = true;
+	if (getTile(xt, yt + 1) == id)
+		td = true;
+}
+
 u8 tData = 0;
-void renderTile(int i, int x, int y) {
+void renderTile(int i, int d, int x, int y) {
 	int age = 0;
 	switch (i) {
 	case TILE_GRASS:
-		v = checkSurrTiles4(x >> 4, y >> 4, TILE_GRASS)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_TREE)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_FLOWER)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_TREE);
-		render16b(x, y, grassTable[v], 80, 0, 0xFF69B569);
-		renderDotsWithColor(v, x, y, 0, 0xFF8ED38E);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_GRASS);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_TREE);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_FLOWER);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_TREE);
+		
+        if(currentLevel==1 && season==3) renderConnectedTile4(x, y, 256, 112);
+        else if(currentLevel==1 && season==2) renderConnectedTile4(x, y, 256, 128);
+		else renderConnectedTile4(x, y, 256, 0);
 		break;
 	case TILE_TREE:
-		render16(x, y, treeTable[checkSurrTiles8(x >> 4, y >> 4, TILE_TREE)],
-				16, 0);
+		renderTile(TILE_GRASS, 0, x, y);
+		
+		checkSurrTiles8(x >> 4, y >> 4, TILE_TREE);
+		
+        if(season==2) {
+            render(x,   y,   352+((tu && tl && tul) ? 16 : 0), 96, 0);
+            render(x+8, y,   360+((tu && tr && tur) ? 16 : 0), 96, 0);
+            render(x,   y+8, 352+((td && tl && tdl) ? 16 : 0), 104, 0);
+            render(x+8, y+8, 360+((td && tr && tdr) ? 16 : 0), 104, 0);
+        } else if(season==3) {
+            render(x,   y,   352+((tu && tl && tul) ? 16 : 0), 112, 0);
+            render(x+8, y,   360+((tu && tr && tur) ? 16 : 0), 112, 0);
+            render(x,   y+8, 352+((td && tl && tdl) ? 16 : 0), 120, 0);
+            render(x+8, y+8, 360+((td && tr && tdr) ? 16 : 0), 120, 0);
+        } else {
+            render(x,   y,   256+((tu && tl && tul) ? 16 : 0), 48, 0);
+            render(x+8, y,   264+((tu && tr && tur) ? 16 : 0), 48, 0);
+            render(x,   y+8, 256+((td && tl && tdl) ? 16 : 0), 56, 0);
+            render(x+8, y+8, 264+((td && tr && tdr) ? 16 : 0), 56, 0);
+        }
+		
 		break;
 	case TILE_ROCK:
-		v = checkSurrTiles8(x >> 4, y >> 4, TILE_ROCK);
-		render16s(x, y, rockTable[v] + 8192, 0, 0xFFFFFFFF);
-		renderRockDotsWithColor(rockTable[v], x, y, 0xFF949494);
+		checkSurrTiles8(x >> 4, y >> 4, TILE_ROCK);
+        if(currentLevel>1)
+            renderConnectedTile8(x, y, 256, 96);
+        else
+            renderConnectedTile8(x, y, 336, 64);
 		break;
 	case TILE_HARDROCK:
-		v = checkSurrTiles8(x >> 4, y >> 4, TILE_HARDROCK);
-		render16s(x, y, rockTable[v] + 8192, 0, 0xFFFFCFCF);
-		renderRockDotsWithColor(rockTable[v], x, y, 0xFFFF9494);
+		checkSurrTiles8(x >> 4, y >> 4, TILE_HARDROCK);
+		renderConnectedTile8(x, y, 416, 64);
 		break;
 	case TILE_DIRT: // render dots.
 		if (currentLevel > 1)
-			render16b(x, y, 0, 0, 0, 0xFF383838);
+			render16(x, y, 320, 80, 0);
 		else
-			render16b(x, y, 0, 0, 0, 0xFF8F8FA8);
+			render16(x, y, 336, 80, 0);
 		break;
 	case TILE_SAND:
-		v = checkSurrTiles4(x >> 4, y >> 4, TILE_SAND)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_CACTUS)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_CACTUS);
-		render16b(x, y, grassTable[v], 80, 0, 0xFF7BF7F7);
-		renderDotsWithColor(v, x, y, 0, 0xFF5BB7B7);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_SAND);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_CACTUS);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_SAPLING_CACTUS);
+		
+		if(currentLevel==1 && season==3) {
+            renderConnectedTile4(x, y, 256, 112);
+		} else {
+            renderConnectedTile4(x, y, 320, 0);
+		
+            if (d > 0) {
+                render16(x, y, 336, 48, 0);
+            }
+        }
 		break;
 	case TILE_WATER:
-		v = checkSurrTiles4(x >> 4, y >> 4, TILE_WATER)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		render16b(x, y, grassTable[v], 96, 0, 0xFFC11D00);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_ICE);
+		
+		renderConnectedTile4(x, y, 384, 0);
+		
 		srand((tickCount + (x / 2 - y) * 4311) / 10);
-		renderDotsWithColor(v, x, y, rand() & 3, 0xFFFF6B6B);
+		renderDots(x, y, rand() & 3, rand() & 3, rand() & 3, rand() & 3, 288, 64);
 		break;
 	case TILE_LAVA:
-		v = checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA)
-				| checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
-		render16b(x, y, grassTable[v], 96, 0, 0xFF001DC1);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
+		
+		renderConnectedTile4(x, y, 448, 0);
+		
 		srand((tickCount + (x / 2 - y) * 4311) / 10);
-		renderDotsWithColor(v, x, y, rand() & 3, 0xFF6B6BFF);
+		renderDots(x, y, rand() & 3, rand() & 3, rand() & 3, rand() & 3, 304, 64);
 		break;
 	case TILE_HOLE:
-		render16b(x, y,
-				grassTable[checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE)
-						| checkSurrTiles4(x >> 4, y >> 4, TILE_WATER)
-						| checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA)], 96, 0,
-				0xFF383838);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_LAVA);
+		
+		renderConnectedTile4(x, y, 256, 16);
 		break;
 	case TILE_CACTUS:
-		render16(x, y, 48, 0, 0);
+		renderTile(TILE_SAND, 0, x, y);
+		render16(x, y, 304, 48, 0);
 		break;
 	case TILE_FLOWER:
-		render16(x, y, 64, 0, getData(x >> 4, y >> 4));
+		renderTile(TILE_GRASS, 0, x, y);
+		if(currentLevel==1 && season==3) render16(x, y, 320, 112, getData(x >> 4, y >> 4));
+        else render16(x, y, 320, 48, getData(x >> 4, y >> 4));
 		break;
 	case TILE_STAIRS_DOWN:
 		if (currentLevel == 0)
-			renderTile(TILE_CLOUD, x, y);
-		render16(x, y, 96, 0, 0);
+			renderTile(TILE_CLOUD, 0, x, y);
+		render16(x, y, 256, 64, 0);
 		break;
 	case TILE_STAIRS_UP:
-		render16(x, y, 112, 0, 0);
+		render16(x, y, 272, 64, 0);
 		break;
 	case TILE_IRONORE:
-		render16b(x, y, 80, 0, 0, 0xFFC8C8DF);
+		render16(x, y, 464, 48, 0);
 		break;
 	case TILE_GOLDORE:
-		render16b(x, y, 80, 0, 0, 0xFFB9E8E5);
+		render16(x, y, 480, 48, 0);
 		break;
 	case TILE_GEMORE:
-		render16b(x, y, 80, 0, 0, 0xFFDE98DF);
+		render16(x, y, 496, 48, 0);
 		break;
 	case TILE_CLOUD:
-		render16b(x, y,
-				grassTable[checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUD)
-						| checkSurrTiles4(x >> 4, y >> 4, TILE_STAIRS_DOWN)
-						| checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUDCACTUS)],
-				80, 0, 0xFFFFFFFF);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUD);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_STAIRS_DOWN);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_CLOUDCACTUS);
+		
+		renderConnectedTile4(x, y, 320, 16);
 		break;
 	case TILE_CLOUDCACTUS:
-		renderTile(TILE_CLOUD, x, y);
-		render16(x, y, 80, 0, 0);
+		renderTile(TILE_CLOUD, 0, x, y);
+		render16(x, y, 496, 64, 0);
 		break;
 	case TILE_SAPLING_TREE:
-		renderTile(TILE_GRASS, x, y);
-		render16(x, y, 32, 0, 0);
+		renderTile(TILE_GRASS, 0, x, y);
+		render16(x, y, 288, 48, 0);
 		break;
 	case TILE_SAPLING_CACTUS:
-		renderTile(TILE_SAND, x, y);
-		render16(x, y, 32, 0, 0);
+		renderTile(TILE_SAND, 0, x, y);
+		render16(x, y, 288, 48, 0);
 		break;
 	case TILE_FARM:
-		render16(x, y, 144, 0, 0);
+		render16(x, y, 352, 48, 0);
 		break;
 	case TILE_WHEAT:
 		age = getData(x >> 4, y >> 4) / 20;
 		if (age > 5)
 			age = 5;
-		render16(x, y, 160 + (age << 4), 0, 0);
+		render16(x, y, 368 + (age << 4), 48, 0);
+		break;
+	case TILE_WOOD_WALL:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_WOOD_WALL);
+		
+		renderConnectedTile4(x, y, 384, 16);
+		break;
+	case TILE_STONE_WALL:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_STONE_WALL);
+		
+		renderConnectedTile4(x, y, 256, 80);
+		break;
+	case TILE_IRON_WALL:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_IRON_WALL);
+		
+		renderConnectedTile4(x, y, 448, 16);
+		break;
+	case TILE_GOLD_WALL:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_GOLD_WALL);
+		
+		renderConnectedTile4(x, y, 256, 32);
+		break;
+	case TILE_GEM_WALL:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_GEM_WALL);
+		
+		renderConnectedTile4(x, y, 320, 32);
+		break;
+	case TILE_DUNGEON_WALL:
+		checkSurrTiles8(x >> 4, y >> 4, TILE_DUNGEON_WALL);
+		
+		renderConnectedTile8(x, y, 384, 32);
+		break;
+	case TILE_DUNGEON_FLOOR:
+		render16(x, y, 464 + d*16, 32, 0);
+		break;
+	case TILE_DUNGEON_ENTRANCE:
+		render16(x, y, 352 + (currentLevel==5 ? 16 : 0), 80, 0);
+		break;
+	case TILE_MAGIC_BARRIER:
+		renderTile(TILE_DUNGEON_FLOOR, 0, x, y);
+		render16(x, y, 320, 64, getData(x >> 4, y >> 4));
+		
+		//draw remaining pillar count
+		if((player.x - (x+8))*(player.x - (x+8)) + (player.y - (y+8))*(player.y - (y+8)) <= 24*24) {
+			x -= offsetX;
+			y -= offsetY;
+		
+			int data = 0;
+			int i = 0;
+			for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
+				Entity * e = &eManager.entities[currentLevel][i];
+			
+				if(e->type == ENTITY_MAGIC_PILLAR) {
+					++data;
+				}
+			}
+			
+			char currentCount[3];
+			sprintf(currentCount,"%d", data);
+			
+			drawSizedTextColor(currentCount, x+4 + 1, y+4 + 1, 2, dungeonColor[1]);
+			drawSizedTextColor(currentCount, x+4, y+4, 2, dungeonColor[0]);
+		}
+		
+		break;
+    case TILE_BOOKSHELVES:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_BOOKSHELVES);
+		
+		renderConnectedTile4(x, y, 384, 80 + d*16);
+		break;
+    case TILE_WOOD_FLOOR:
+        render16(x, y, 336, 96, 0);
+        break;
+    case TILE_MYCELIUM:
+		checkSurrTiles4(x >> 4, y >> 4, TILE_MYCELIUM);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_MUSHROOM_BROWN);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_MUSHROOM_RED);
+		
+		if(currentLevel==1 && season==3) renderConnectedTile4(x, y, 256, 112);
+		else renderConnectedTile4(x, y, 448, 80);
+		break;
+    case TILE_MUSHROOM_BROWN:
+        renderTile(TILE_MYCELIUM, 0, x, y);
+		render16(x, y, 448 + (d&0x1)*16, 96, 0);
+        break;
+    case TILE_MUSHROOM_RED:
+        renderTile(TILE_MYCELIUM, 0, x, y);
+		render16(x, y, 480 + (d&0x1)*16, 96, 0);
+        break;
+    case TILE_ICE:
+		renderTile(TILE_WATER, 0, x, y);
+		//checkSurrTiles4(x >> 4, y >> 4, TILE_WATER);
+		//checkSurrTiles4(x >> 4, y >> 4, TILE_HOLE);
+		checkSurrTiles4(x >> 4, y >> 4, TILE_ICE);
+		
+		renderConnectedTile4(x, y, 448, 112);
 		break;
 	}
 
+	resetSurrTiles();
+}
+
+void renderConnectedTile4(int x, int y, u32 xTile, u32 yTile) {
+	//render complete tile in one piece to reduce strain(added for o3DS)
+	if (tl && tr && tu && td) {
+		render16(x, y, xTile+48, yTile, 0);
+		return;
+	}
+	
+	int l = (tl ? 16 : 0);
+	int r = (tr ? 16 : 0);
+	int u = (tu ? 32 : 0);
+	int d = (td ? 32 : 0);
+	
+	render(x,   y,   xTile  +l+u, yTile, 0);
+	render(x+8, y,   xTile+8+r+u, yTile, 0);
+	render(x,   y+8, xTile  +l+d, yTile+8, 0);
+	render(x+8, y+8, xTile+8+r+d, yTile+8, 0);
+}
+
+void renderConnectedTile8(int x, int y, u32 xTile, u32 yTile) {
+	//render complete tile in one piece to reduce strain(added for o3DS)
+	if (tl && tr && tu && td && tul && tur && tdl && tdr) {
+		render16(x, y, xTile+64, yTile, 0);
+		return;
+	}
+	
+	int l = (tl ? 16 : 0);
+	int r = (tr ? 16 : 0);
+	int u = (tu ? 32 : 0);
+	int d = (td ? 32 : 0);
+	
+	render(x,   y,   xTile  +l+u+((tl && tu && tul) ? 16 : 0), yTile, 0);
+	render(x+8, y,   xTile+8+r+u+((tr && tu && tur) ? 16 : 0), yTile, 0);
+	render(x,   y+8, xTile  +l+d+((tl && td && tdl) ? 16 : 0), yTile+8, 0);
+	render(x+8, y+8, xTile+8+r+d+((tr && td && tdr) ? 16 : 0), yTile+8, 0);
 }
 
 void renderZoomedMap() {
+	sf2d_draw_rectangle(0, 0, 320, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+	
     int mx = mScrollX;
     int my = mScrollY;
     if(zoomLevel == 2) mx = 32;
 	sf2d_draw_texture_scale(minimap[currentLevel], mx, my, zoomLevel, zoomLevel); // zoomed map
+	// Airwizard on zoomed map
 	if(currentLevel == 0){
-        if(awX != 0 && awY != 0){
-            render16c(
-            (mx+((awX/16)*zoomLevel)-16)/2, 
-            (my+((awY/16)*zoomLevel)-16)/2, 
-            160, 112, 
-            ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
-            2, 2
-            ); // Airwizard on zoomed map
-        }
+		if(awX != 0 && awY != 0){
+			render16c(
+			(mx+((awX/16)*zoomLevel)-16)/2, 
+			(my+((awY/16)*zoomLevel)-16)/2, 
+			160, 112, 
+			((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
+			2, 2
+			);
+		}
     }
+	// Player on zoomed map
     render16c(
     (mx+((player.x/16)*zoomLevel)-16)/2, 
     (my+((player.y/16)*zoomLevel)-16)/2, 
     0, 112, 
     ((player.p.walkDist >> 6) & 1) == 0 ? 0 : 1, 
     2, 2
-    ); // Player on zoomed map
+    );
+	
     drawText(mapText,224, 214); // "x2"/"x4"/"x6"
     render16(142, 2, 72, 208, 0); // Exit button
     renderc(126, 102, 40, 208, 32, 16, 0); // Plus/Minus zoom buttons
@@ -684,17 +795,32 @@ void renderGui() {
 		else
 			render(i * 8 + 6, 14, 191, 152, 0);
 	}
-	sf2d_draw_texture(minimap[currentLevel], 96, 102);
+	sf2d_draw_texture(minimap[currentLevel], 10, 102);
 	renderItemWithTextCentered(player.p.activeItem, 320, 66);
 	itoa(player.p.score, scoreT, 10); // integer to base10 string
 	drawText("Score:",214,12);
 	drawText(scoreT,(140-(strlen(scoreT)*12))/2 + 180,29);
 	if(currentLevel == 0){
-        if(awX != 0 && awY != 0){
-            renderc(44 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
-        }
+		if(awX != 0 && awY != 0){
+			renderc(1 + (awX/32), 47 + (awY/32), 88, 216, 8, 8, 0); // Mini-AWizard head.
+		}
     }
-	renderc(44 + (player.x/32), 47 + (player.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
+	renderc(1 + (player.x/32), 47 + (player.y/32), 88, 208, 8, 8, 0); // Mini-Player head.
+	
+	//quick select
+	drawText("Quickselect:",164,118);
+
+	Inventory * inv = player.p.inv;
+	Item * item;
+	for (i = 0; i < 8; ++i) {
+		if((inv->lastSlot) > i) {
+			int xip = i % 4;
+			int yip = i / 4;
+		
+			item = &inv->items[i];
+			renderItemIcon(item->id, item->countLevel, 81+xip*21, 77+yip*21);
+		}
+	}
 }
 
 void renderPlayer() {
@@ -779,24 +905,88 @@ void renderPlayer() {
 }
 
 void renderMenuBackground(int xScroll, int yScroll) {
-	sf2d_draw_rectangle(0, 0, 400, 240, RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
-	renderLightsToStencil();
+	sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //You might think "real" black would be better, but it actually looks better that way
+	renderLightsToStencil(false, false, true);
 	renderBackground(xScroll, yScroll);
 	resetStencilStuff();
+	
+	renderDayNight();
+}
+
+void renderWeather(int xScroll, int yScroll) {
+    if(currentLevel==1) {
+        if(season==3) {
+            int xp = -128 + ((tickCount>>2) - xScroll*2)%128;
+            int yp = -128 + ((tickCount>>1) - yScroll*2)%128;
+            int xp2 = 0 - ((tickCount>>2) + xScroll*2)%128;
+            int yp2 = -128 + ((tickCount>>1)+64 - yScroll*2)%128;
+            int xt;
+            int yt;
+            for(xt=0; xt<4; ++xt) {
+                for(yt=0; yt<3; ++yt) {
+                    sf2d_draw_texture_part_scale(icons, xp + xt*128, yp + yt*128, 192, 0, 64, 64, 2, 2);
+                    sf2d_draw_texture_part_scale(icons, xp2 + xt*128, yp2 + yt*128, 192, 0, 64, 64, 2, 2);
+                }
+            }
+        }
+        
+        if(rain) {
+            int xp = -((xScroll*2)%128);
+            int yp = -128 + ((tickCount<<2) - yScroll*2)%128;
+            int xp2 = -((xScroll*2+8)%128);
+            int yp2 = -128 + ((tickCount<<1)+64 - yScroll*2)%128;
+            int xt;
+            int yt;
+            for(xt=0; xt<4; ++xt) {
+                for(yt=0; yt<3; ++yt) {
+                    sf2d_draw_texture_part_scale(icons, xp + xt*128, yp + yt*128, 128, 0, 64, 64, 2, 2);
+                    sf2d_draw_texture_part_scale(icons, xp2 + xt*128, yp2 + yt*128, 128, 0, 64, 64, 2, 2);
+                }
+            }
+        }
+    }
+}
+
+void renderDayNight() {
+	if(currentLevel==1 && (daytime<6000 || daytime>18000)) {
+		int color1 = 0x000C0C0C;
+		int color2 = 0x00100C0C;
+		int alpha1 = 0x88;
+		int alpha2 = 0xDD;
+		
+		if(daytime>5000 && daytime<6000) {
+			alpha1 = (alpha1 * (1000-(daytime-5000)))/1000;
+			alpha2 = (alpha2 * (1000-(daytime-5000)))/1000;
+		} else if(daytime>18000 && daytime<19000) {
+			alpha1 = (alpha1 * (daytime-18000))/1000;
+			alpha2 = (alpha2 * (daytime-18000))/1000;
+		}
+		
+		color1 = color1 | (alpha1 << 24);
+		color2 = color2 | (alpha2 << 24);
+		
+		sf2d_draw_rectangle(0, 0, 400, 240, color1); //You might think "real" black would be better, but it actually looks better that way
+		renderLightsToStencil(true, true, false);
+		sf2d_draw_rectangle(0, 0, 400, 240, color2); //You might think "real" black would be better, but it actually looks better that way
+		resetStencilStuff();
+	}
 }
 
 void renderBackground(int xScroll, int yScroll) {
-    if(currentLevel > 0) sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
-	else {
+    if(currentLevel == 0) {
 		sf2d_draw_texture_part_scale(minimap[1], (-xScroll / 3) - 256, (-yScroll / 3) - 32, 0, 0, 128, 128, 12.5, 7.5);
 		sf2d_draw_rectangle(0, 0, 400, 240, 0xAFDFDFDF);
+	} else if(currentLevel == 5) {
+		sf2d_draw_rectangle(0, 0, 400, 240, dungeonColor[1]);
+	} else {
+		sf2d_draw_rectangle(0, 0, 400, 240, dirtColor[currentLevel]); // dirt color
 	}
 	int xo = xScroll >> 4;
 	int yo = yScroll >> 4;
 	int x, y;
 	for (x = xo; x <= 13 + xo; ++x) {
 		for (y = yo; y <= 8 + yo; ++y)
-			renderTile(getTile(x, y), x << 4, y << 4);
+			renderTile(getTile(x, y), getData(x, y), x << 4, y << 4);
 	}
 }
 
@@ -896,6 +1086,12 @@ void renderFurniture(int itemID, int x, int y) {
 	case ITEM_LANTERN:
 		render16(x, y, 144, 128, 0);
 		break;
+	case ITEM_LOOM:
+		render16(x, y, 224, 128, 0);
+		break;
+	case ITEM_ENCHANTER:
+		render16(x, y, 240, 128, 0);
+		break;
 	}
 }
 
@@ -906,31 +1102,57 @@ void renderEntity(Entity* e, int x, int y) {
 		if (e->entityItem.age >= 520)
 			if (e->entityItem.age / 6 % 2 == 0)
 				return;
-		renderItemIcon2(e->entityItem.item.id, e->entityItem.item.countLevel,
-				x - 4, y - 4, (int) e->entityItem.zz);
+		renderItemIcon(e->entityItem.item.id, e->entityItem.item.countLevel,
+				x - 4, y - 4 - (int) e->entityItem.zz);
 		break;
 	case ENTITY_FURNITURE:
 		renderFurniture(e->entityFurniture.itemID, x - 8, y - 8);
 		break;
 	case ENTITY_ZOMBIE:
-		switch (e->zombie.dir) {
+		switch (e->hostile.dir) {
 		case 0: // down
-			render16b(x - 8, y - 8, 64, 112,
-					((e->zombie.walkDist >> 4) & 1) == 0 ? 0 : 1,
-					e->zombie.color);
+			render16b(x - 8, y - 8, 64, 112, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
 			break;
 		case 1: // up
-			render16b(x - 8, y - 8, 80, 112,
-					((e->zombie.walkDist >> 4) & 1) == 0 ? 0 : 1,
-					e->zombie.color);
+			render16b(x - 8, y - 8, 80, 112, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
 			break;
 		case 2: // left
-			render16b(x - 8, y - 8, 96 + (((e->zombie.walkDist >> 4) & 1) << 4),
-					112, 1, e->zombie.color);
+			render16b(x - 8, y - 8, 96 + (((e->hostile.walkDist >> 4) & 1) << 4), 112, 1, e->hostile.color);
 			break;
 		case 3: // right
-			render16b(x - 8, y - 8, 96 + (((e->zombie.walkDist >> 4) & 1) << 4),
-					112, 0, e->zombie.color);
+			render16b(x - 8, y - 8, 96 + (((e->hostile.walkDist >> 4) & 1) << 4), 112, 0, e->hostile.color);
+			break;
+		}
+		break;
+	case ENTITY_SKELETON:
+		switch (e->hostile.dir) {
+		case 0: // down
+			render16b(x - 8, y - 8, 0, 80, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
+			break;
+		case 1: // up
+			render16b(x - 8, y - 8, 16, 80, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
+			break;
+		case 2: // left
+			render16b(x - 8, y - 8, 32 + (((e->hostile.walkDist >> 4) & 1) << 4), 80, 1, e->hostile.color);
+			break;
+		case 3: // right
+			render16b(x - 8, y - 8, 32 + (((e->hostile.walkDist >> 4) & 1) << 4), 80, 0, e->hostile.color);
+			break;
+		}
+		break;
+	case ENTITY_KNIGHT:
+		switch (e->hostile.dir) {
+		case 0: // down
+			render16b(x - 8, y - 8, 64, 80, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
+			break;
+		case 1: // up
+			render16b(x - 8, y - 8, 80, 80, ((e->hostile.walkDist >> 4) & 1) == 0 ? 0 : 1, e->hostile.color);
+			break;
+		case 2: // left
+			render16b(x - 8, y - 8, 96 + (((e->hostile.walkDist >> 4) & 1) << 4), 80, 1, e->hostile.color);
+			break;
+		case 3: // right
+			render16b(x - 8, y - 8, 96 + (((e->hostile.walkDist >> 4) & 1) << 4), 80, 0, e->hostile.color);
 			break;
 		}
 		break;
@@ -966,11 +1188,27 @@ void renderEntity(Entity* e, int x, int y) {
 			break;
 		}
 		break;
+	case ENTITY_PASSIVE:
+		switch (e->passive.dir) {
+		case 0: // down
+			render16(x - 8, y - 8, (e->passive.mtype*64) + 0, 96, ((e->passive.walkDist >> 4) & 1) == 0 ? 0 : 1);
+			break;
+		case 1: // up
+			render16(x - 8, y - 8, (e->passive.mtype*64) + 16, 96, ((e->passive.walkDist >> 4) & 1) == 0 ? 0 : 1);
+			break;
+		case 2: // left
+			render16(x - 8, y - 8, (e->passive.mtype*64) + 32 + (((e->passive.walkDist >> 4) & 1) << 4), 96, 1);
+			break;
+		case 3: // right
+			render16(x - 8, y - 8, (e->passive.mtype*64) + 32 + (((e->passive.walkDist >> 4) & 1) << 4), 96, 0);
+			break;
+		}
+		break;
 	case ENTITY_TEXTPARTICLE:
 		x -= offsetX;
 		y -= offsetY;
 		drawSizedTextColor(e->textParticle.text, x + 1,
-				y - (int) e->textParticle.zz + 1, 2, 0xFF000000);
+				y - (int) e->textParticle.zz + 1, 2, 0xFF);
 		drawSizedTextColor(e->textParticle.text, x,
 				y - (int) e->textParticle.zz, 2, e->textParticle.color);
 		break;
@@ -983,6 +1221,73 @@ void renderEntity(Entity* e, int x, int y) {
 				return;
 		renderr(x, y, 200, 152, 0, e->spark.age * 0.0349);
 		break;
+	case ENTITY_DRAGON:
+		switch (e->dragon.dir) {
+		case 0: // down
+			render32(x - 16, y - 16, 0+(e->dragon.animTimer/4 * 32), 256, 2);
+			break;
+		case 1: // up
+			render32(x - 16, y - 16, 0+(e->dragon.animTimer/4 * 32), 256, 0);
+			break;
+		case 2: // left
+			render32(x - 16, y - 16, 0+(e->dragon.animTimer/4 * 32), 288, 1);
+			break;
+		case 3: // right
+			render32(x - 16, y - 16, 0+(e->dragon.animTimer/4 * 32), 288, 0);
+			break;
+		}
+		break;
+	case ENTITY_DRAGONPROJECTILE: 
+		if(e->dragonFire.type==0) {
+			renderr(x, y, 0, 320, 0, e->dragonFire.age * 0.349);
+		} else {
+			render(x, y, 8, 320 + (e->dragonFire.age/10)*8, 0);
+		}
+		break;
+	case ENTITY_MAGIC_PILLAR:
+		render16(x - 8, y - 8, 16, 320, 0);
+		break;
+	case ENTITY_ARROW:
+		if (e->arrow.age >= 200)
+			if (e->arrow.age / 6 % 2 == 0)
+				return;
+		
+		int abits = 0;
+		int ayp = 168;
+		if(e->arrow.xa<0) {
+			abits += 1;
+		}
+		if(e->arrow.ya<0) {
+			ayp += 8;
+		}
+		if(e->arrow.ya>0) {
+			ayp += 8;
+			abits += 2;
+		}
+		
+		switch (e->arrow.itemID) {
+		case ITEM_ARROW_WOOD:
+			render(x-2, y-2, 72, ayp, abits);
+			break;
+		case ITEM_ARROW_STONE:
+			render(x-2, y-2, 80, ayp, abits);
+			break;
+		case ITEM_ARROW_IRON:
+			render(x-2, y-2, 88, ayp, abits);
+			break;
+		case ITEM_ARROW_GOLD:
+			render(x-2, y-2, 96, ayp, abits);
+			break;
+		case ITEM_ARROW_GEM:
+			render(x-2, y-2, 104, ayp, abits);
+			break;
+		}
+		break;
+	case ENTITY_GLOWWORM:
+		render(x-4, y-4, 224, 112, 0);
+		break;
+    case ENTITY_NPC:
+		render16(x - 8, y - 8, (e->npc.type*16) + 0, 64, 0);
 	}
 }
 
@@ -1022,16 +1327,15 @@ void renderItemList(Inventory * inv, int xo, int yo, int x1, int y1,
 	if (drawCursor) {
 		int yy = selected + 1 - io + yo;
 		sf2d_draw_rectangle((xo << 4) - (offsetX << 1),
-				(yy << 4) - (offsetY << 1), 12, 12, 0xFF000000);
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
 		drawText(">", (xo << 4), yy << 4);
 		sf2d_draw_rectangle(((xo + w) << 4) - 12 - (offsetX << 1),
-				(yy << 4) - (offsetY << 1), 12, 12, 0xFF000000);
+				(yy << 4) - (offsetY << 1), 12, 12, 0xFF);
 		drawText("<", ((xo + w) << 4) - 12, yy << 4);
 	}
 }
 
-void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
-		int selected) {
+void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1, int selected) {
 	int size = r->size;
 	if (size < 1)
 		return;
@@ -1051,22 +1355,22 @@ void renderRecipes(RecipeManager * r, int xo, int yo, int x1, int y1,
 	int i, col;
 	for (i = 0; i < i1; ++i) {
 		int x = (1 + xo) << 4, y = (i + 1 + yo) << 4;
-		renderItemIcon(r->recipes[i + io].itemResult,
-				r->recipes[i + io].itemAmountLevel, x >> 1, y >> 1);
+		renderItemIcon(r->recipes[i + io].itemResult, r->recipes[i + io].itemAmountLevel, x >> 1, y >> 1);
 		if (r->recipes[i + io].canCraft)
 			col = 0xFFFFFFFF;
 		else
 			col = 0xFF7F7F7F;
-		drawTextColor(
-				getBasicItemName(r->recipes[i + io].itemResult,
-						r->recipes[i + io].itemAmountLevel), x + 18, y + 2,
-				col);
+		if(r->recipes[i + io].itemAmountLevel==1) {
+            drawTextColor(getBasicItemName(r->recipes[i + io].itemResult, r->recipes[i + io].itemAmountLevel), x + 18, y + 2, col);
+        } else {
+            drawTextColor(getItemName(r->recipes[i + io].itemResult, r->recipes[i + io].itemAmountLevel), x + 18, y + 2, col);
+        }
 	}
 
 	int yy = selected + 1 - io + yo;
-	sf2d_draw_rectangle(xo << 4, yy << 4, 12, 12, 0xFF000000);
+	sf2d_draw_rectangle(xo << 4, yy << 4, 12, 12, 0xFF);
 	drawText(">", xo << 4, yy << 4);
-	sf2d_draw_rectangle(((xo + w) << 4) - 12, yy << 4, 12, 12, 0xFF000000);
+	sf2d_draw_rectangle(((xo + w) << 4) - 12, yy << 4, 12, 12, 0xFF);
 	drawText("<", ((xo + w) << 4) - 12, yy << 4);
 }
 
@@ -1102,115 +1406,9 @@ void renderItemWithTextCentered(Item* item, int width, int y) {
 				y + 2, 0xFFD2D2D2, 0xFFFFFFFF);
 }
 
-void renderItemIcon2(int itemID, int countLevel, int x, int y, int z) {
-	switch (itemID) {
-	case ITEM_NULL:
-		return;
-	case TOOL_SHOVEL:
-		renderb(x, y, countLevel * 8, 144, 0, 0xFF000000);
-		break;
-	case TOOL_HOE:
-		renderb(x, y, 40 + countLevel * 8, 144, 0, 0xFF000000);
-		break;
-	case TOOL_SWORD:
-		renderb(x, y, 80 + countLevel * 8, 144, 0, 0xFF000000);
-		break;
-	case TOOL_PICKAXE:
-		renderb(x, y, 120 + countLevel * 8, 144, 0, 0xFF000000);
-		break;
-	case TOOL_AXE:
-		renderb(x, y, 160 + countLevel * 8, 144, 0, 0xFF000000);
-		break;
-	case ITEM_ANVIL:
-		renderb(x, y, 120, 152, 0, 0xFF000000);
-		break;
-	case ITEM_CHEST:
-		renderb(x, y, 128, 152, 0, 0xFF000000);
-		break;
-	case ITEM_OVEN:
-		renderb(x, y, 136, 152, 0, 0xFF000000);
-		break;
-	case ITEM_FURNACE:
-		renderb(x, y, 144, 152, 0, 0xFF000000);
-		break;
-	case ITEM_WORKBENCH:
-		renderb(x, y, 152, 152, 0, 0xFF000000);
-		break;
-	case ITEM_LANTERN:
-		renderb(x, y, 160, 152, 0, 0xFF000000);
-		break;
-	case ITEM_POWGLOVE:
-		renderb(x, y, 56, 152, 0, 0xFF000000);
-		break;
-	case ITEM_FLOWER:
-		renderb(x, y, 0, 152, 0, 0xFF000000);
-		break;
-	case ITEM_WOOD:
-		renderb(x, y, 8, 152, 0, 0xFF000000);
-		break;
-	case ITEM_STONE:
-		renderb(x, y, 16, 152, 0, 0xFF000000);
-		break;
-	case ITEM_SAND:
-		renderb(x, y, 16, 152, 0, 0xFF000000);
-		break;
-	case ITEM_DIRT:
-		renderb(x, y, 16, 152, 0, 0xFF000000);
-		break;
-	case ITEM_CLOUD:
-		renderb(x, y, 16, 152, 0, 0xFF000000);
-		break;
-	case ITEM_ACORN:
-		renderb(x, y, 24, 152, 0, 0xFF000000);
-		break;
-	case ITEM_CACTUS:
-		renderb(x, y, 32, 152, 0, 0xFF000000);
-		break;
-	case ITEM_SEEDS:
-		renderb(x, y, 40, 152, 0, 0xFF000000);
-		break;
-	case ITEM_WHEAT:
-		renderb(x, y, 48, 152, 0, 0xFF000000);
-		break;
-	case ITEM_FLESH:
-		renderb(x, y, 64, 152, 0, 0xFF000000);
-		break;
-	case ITEM_BREAD:
-		renderb(x, y, 72, 152, 0, 0xFF000000);
-		break;
-	case ITEM_APPLE:
-		renderb(x, y, 80, 152, 0, 0xFF000000);
-		break;
-	case ITEM_SLIME:
-		renderb(x, y, 88, 152, 0, 0xFF000000);
-		break;
-	case ITEM_COAL:
-		renderb(x, y, 88, 152, 0, 0xFF000000);
-		break;
-	case ITEM_IRONORE:
-		renderb(x, y, 88, 152, 0, 0xFF000000);
-		break;
-	case ITEM_GOLDORE:
-		renderb(x, y, 88, 152, 0, 0xFF000000);
-		break;
-	case ITEM_IRONINGOT:
-		renderb(x, y, 96, 152, 0, 0xFF000000);
-		break;
-	case ITEM_GOLDINGOT:
-		renderb(x, y, 96, 152, 0, 0xFF000000);
-		break;
-	case ITEM_GLASS:
-		renderb(x, y, 104, 152, 0, 0xFF000000);
-		break;
-	case ITEM_GEM:
-		renderb(x, y, 112, 152, 0, 0xFF000000);
-		break;
-	}
-	y -= z;
-	renderItemIcon(itemID, countLevel, x, y);
-}
-
 void renderItemIcon(int itemID, int countLevel, int x, int y) {
+    int xd;
+    int yd;
 	switch (itemID) {
 	case ITEM_NULL:
 		return;
@@ -1257,10 +1455,10 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		render(x, y, 8, 152, 0);
 		break;
 	case ITEM_STONE:
-		renderb(x, y, 16, 152, 0, 0xFFCFCFCF);
+		renderb(x, y, 16, 152, 0, rockColor[1]);
 		break;
 	case ITEM_SAND:
-		renderb(x, y, 16, 152, 0, 0xFF7BF7F7);
+		renderb(x, y, 16, 152, 0, sandColor);
 		break;
 	case ITEM_DIRT:
 		renderb(x, y, 16, 152, 0, 0xFF8197AF);
@@ -1296,16 +1494,16 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 		renderb(x, y, 88, 152, 0, 0xFF383838);
 		break;
 	case ITEM_IRONORE:
-		renderb(x, y, 88, 152, 0, 0xFF9999BC);
+		renderb(x, y, 88, 152, 0, ironColor);
 		break;
 	case ITEM_GOLDORE:
-		renderb(x, y, 88, 152, 0, 0xFF88CECE);
+		renderb(x, y, 88, 152, 0, goldColor);
 		break;
 	case ITEM_IRONINGOT:
-		renderb(x, y, 96, 152, 0, 0xFFC8C8DF);
+		renderb(x, y, 96, 152, 0, ironColor);
 		break;
 	case ITEM_GOLDINGOT:
-		renderb(x, y, 96, 152, 0, 0xFFBCEAEA);
+		renderb(x, y, 96, 152, 0, goldColor);
 		break;
 	case ITEM_GLASS:
 		render(x, y, 104, 152, 0);
@@ -1313,171 +1511,103 @@ void renderItemIcon(int itemID, int countLevel, int x, int y) {
 	case ITEM_GEM:
 		render(x, y, 112, 152, 0);
 		break;
+	case ITEM_LOOM:
+		render(x, y, 120, 160, 0);
+		break;
+	case ITEM_ENCHANTER:
+		render(x, y, 144, 160, 0);
+		break;
+	case ITEM_WALL_WOOD:
+		renderb(x, y, 224, 144, 0, woodColor);
+		break;
+	case ITEM_WALL_STONE:
+		renderb(x, y, 224, 144, 0, rockColor[1]);
+		break;
+	case ITEM_WALL_IRON:
+		renderb(x, y, 224, 144, 0, ironColor);
+		break;
+	case ITEM_WALL_GOLD:
+		renderb(x, y, 224, 144, 0, goldColor);
+		break;
+	case ITEM_WALL_GEM:
+		renderb(x, y, 224, 144, 0, gemColor);
+		break;
+	case ITEM_WOOL:
+		render(x, y, 64, 160, 0);
+		break;
+	case ITEM_STRING:
+		render(x, y, 72, 160, 0);
+		break;
+	case ITEM_PORK_RAW:
+		render(x, y, 80, 160, 0);
+		break;
+	case ITEM_PORK_COOKED:
+		render(x, y, 88, 160, 0);
+		break;
+	case ITEM_BEEF_RAW:
+		render(x, y, 96, 160, 0);
+		break;
+	case ITEM_BEEF_COOKED:
+		render(x, y, 104, 160, 0);
+		break;
+	case ITEM_LEATHER:
+		render(x, y, 112, 160, 0);
+		break;
+	case ITEM_ARROW_WOOD:
+		render(x, y, 72, 168, 0);
+		break;
+	case ITEM_ARROW_STONE:
+		render(x, y, 80, 168, 0);
+		break;
+	case ITEM_ARROW_IRON:
+		render(x, y, 88, 168, 0);
+		break;
+	case ITEM_ARROW_GOLD:
+		render(x, y, 96, 168, 0);
+		break;
+	case ITEM_ARROW_GEM:
+		render(x, y, 104, 168, 0);
+		break;
+	case ITEM_BONE:
+		render(x, y, 128, 160, 0);
+		break;
+	case ITEM_DUNGEON_KEY:
+		render(x, y, 136, 160, 0);
+		break;
+	case ITEM_WIZARD_SUMMON:
+		render(x, y, 152, 160, 0);
+		break;
+	case ITEM_DRAGON_EGG:
+		render(x, y, 160, 160, 0);
+		break;
+	case ITEM_DRAGON_SCALE:
+		render(x, y, 168, 160, 0);
+		break;
+    case ITEM_BOOKSHELVES:
+		render(x, y, 232, 144, 0);
+		break;
+    case ITEM_MAGIC_DUST:
+        render(x, y, 200, 152, 0);
+		break;
+    case ITEM_COIN:
+        render(x, y, 208, 152, 0);
+		break;
+	case TOOL_BUCKET:
+		render(x, y, 200 + countLevel * 8, 144, 0);
+		break;
+	case TOOL_BOW:
+		render(x, y, 64, 168, 0);
+		break;
+    case TOOL_MAGIC_COMPASS:
+        xd = compassData[currentLevel][0] - (player.x>>4);
+        yd = compassData[currentLevel][1] - (player.y>>4);
+        if(abs(yd)>abs(xd)) {
+            if(yd<0) render(x, y, 112, 168, 0);
+            else render(x, y, 120, 168, 0);
+        } else {
+            if(xd<0) render(x, y, 128, 168, 0);
+            else render(x, y, 136, 168, 0);
+        }
+		break;
 	}
-}
-
-void defineTables() {
-
-	int i = 0;
-	for (i = 256; i > 0; --i) {
-		// Creates the lookup table for the tree tile.
-		if ((i & 255) == 255)
-			treeTable[i] = 208;
-		else if ((i & 239) == 239)
-			treeTable[i] = 144;
-		else if ((i & 191) == 191)
-			treeTable[i] = 160;
-		else if ((i & 127) == 127)
-			treeTable[i] = 176;
-		else if ((i & 223) == 223)
-			treeTable[i] = 192;
-		else if ((i & 206) == 206)
-			treeTable[i] = 112;
-		else if ((i & 55) == 55)
-			treeTable[i] = 128;
-		else if ((i & 173) == 173)
-			treeTable[i] = 96;
-		else if ((i & 91) == 91)
-			treeTable[i] = 80;
-
-		else if ((i & 159) == 159)
-			treeTable[i] = 224;
-		else if ((i & 111) == 111)
-			treeTable[i] = 240;
-
-		else if ((i & 19) == 19)
-			treeTable[i] = 64;
-		else if ((i & 37) == 37)
-			treeTable[i] = 48;
-		else if ((i & 74) == 74)
-			treeTable[i] = 32;
-		else if ((i & 140) == 140)
-			treeTable[i] = 16;
-	}
-
-	/*
-	 boolean up = i & 1
-	 boolean left = i & 2
-	 boolean right = i & 4
-	 boolean down = i & 8
-	 boolean up-left = i & 16
-	 boolean up-right = i & 32
-	 boolean down-left = i & 64
-	 boolean down-right = i & 128
-	 */
-
-	for (i = 256; i > 0; --i) {
-		// Creates the lookup table for the rock tile.
-		if ((i & 255) == 255)
-			rockTable[i] = 208;
-		else if ((i & 239) == 239)
-			rockTable[i] = 144;
-		else if ((i & 191) == 191)
-			rockTable[i] = 160;
-		else if ((i & 127) == 127)
-			rockTable[i] = 176;
-		else if ((i & 223) == 223)
-			rockTable[i] = 192;
-		else if ((i & 207) == 207)
-			rockTable[i] = 256 * 16 + 32;
-		else if ((i & 63) == 63)
-			rockTable[i] = 256 * 16 + 16;
-		else if ((i & 206) == 206)
-			rockTable[i] = 112;
-		else if ((i & 95) == 95)
-			rockTable[i] = 256 * 32 + 144;
-		else if ((i & 159) == 159)
-			rockTable[i] = 256 * 32 + 160;
-		else if ((i & 31) == 31)
-			rockTable[i] = 256 * 32 + 208;
-		else if ((i & 55) == 55)
-			rockTable[i] = 128;
-		else if ((i & 175) == 175)
-			rockTable[i] = 256 * 32 + 128;
-		else if ((i & 143) == 143)
-			rockTable[i] = 256 * 32 + 224;
-		else if ((i & 173) == 173)
-			rockTable[i] = 96;
-		else if ((i & 111) == 111)
-			rockTable[i] = 256 * 32 + 112;
-		else if ((i & 47) == 47)
-			rockTable[i] = 256 * 32 + 48;
-		else if ((i & 45) == 45)
-			rockTable[i] = 256 * 32 + 176;
-		else if ((i & 79) == 79)
-			rockTable[i] = 256 * 32 + 192;
-		else if ((i & 23) == 23)
-			rockTable[i] = 256 * 32 + 96;
-		else if ((i & 91) == 91)
-			rockTable[i] = 80;
-		else if ((i & 27) == 27)
-			rockTable[i] = 256 * 16 + 96;
-		else if ((i & 19) == 19)
-			rockTable[i] = 64;
-		else if ((i & 75) == 75)
-			rockTable[i] = 256 * 32;
-		else if ((i & 141) == 141)
-			rockTable[i] = 256 * 32 + 16;
-		else if ((i & 142) == 142)
-			rockTable[i] = 256 * 32 + 32;
-		else if ((i & 78) == 78)
-			rockTable[i] = 256 * 32 + 64;
-		else if ((i & 39) == 39)
-			rockTable[i] = 256 * 32 + 80;
-		else if ((i & 37) == 37)
-			rockTable[i] = 48;
-		else if ((i & 74) == 74)
-			rockTable[i] = 32;
-		else if ((i & 140) == 140)
-			rockTable[i] = 16;
-		else if ((i & 15) == 15)
-			rockTable[i] = 256 * 16 + 112;
-		else if ((i & 11) == 11)
-			rockTable[i] = 256 * 16 + 192;
-		else if ((i & 13) == 13)
-			rockTable[i] = 256 * 16 + 208;
-		else if ((i & 14) == 14)
-			rockTable[i] = 256 * 16 + 224;
-		else if ((i & 7) == 7)
-			rockTable[i] = 256 * 16 + 240;
-		else if ((i & 12) == 12)
-			rockTable[i] = 256 * 16 + 128;
-		else if ((i & 10) == 10)
-			rockTable[i] = 256 * 16 + 144;
-		else if ((i & 5) == 5)
-			rockTable[i] = 256 * 16 + 160;
-		else if ((i & 3) == 3)
-			rockTable[i] = 256 * 16 + 176;
-		else if ((i & 9) == 9)
-			rockTable[i] = 256 * 16;
-		else if ((i & 6) == 6)
-			rockTable[i] = 256 * 16 + 48;
-		else if ((i & 8) == 8)
-			rockTable[i] = 224;
-		else if ((i & 4) == 4)
-			rockTable[i] = 256 * 16 + 64;
-		else if ((i & 2) == 2)
-			rockTable[i] = 256 * 16 + 80;
-		else if ((i & 1) == 1)
-			rockTable[i] = 240;
-
-	}
-
-	// Lookup table for the grass/sand tile.
-	grassTable[1] = 192;
-	grassTable[2] = 160;
-	grassTable[3] = 64;
-	grassTable[4] = 144;
-	grassTable[5] = 48;
-	grassTable[6] = 224;
-	grassTable[7] = 128;
-	grassTable[8] = 176;
-	grassTable[9] = 240;
-	grassTable[10] = 32;
-	grassTable[11] = 80;
-	grassTable[12] = 16;
-	grassTable[13] = 96;
-	grassTable[14] = 112;
-	grassTable[15] = 208;
-
 }

@@ -2,6 +2,8 @@
 #include <3ds.h>
 #include "SaveLoad.h"
 #include "Input.h"
+#include "MapGen.h"
+#include "Quests.h"
 
 #include "icons2_png.h"
 #include "Font_png.h"
@@ -24,6 +26,15 @@
 #define MENU_LOADGAME 11
 #define MENU_SETTINGS_REBIND 12
 #define MENU_SETTINGS_TP 13
+#define MENU_DUNGEON 14
+#define MENU_NPC 15
+#define MENU_MULTIPLAYER 16
+
+#define NPC_GIRL 0
+#define NPC_PRIEST 1
+#define NPC_FARMER 2
+#define NPC_LIBRARIAN 3
+#define NPC_DWARF 4
 
 #define TILE_NULL 255
 #define TILE_GRASS 0
@@ -49,7 +60,26 @@
 #define TILE_CLOUDCACTUS 20
 #define TILE_HOLE 21
 
+#define TILE_WOOD_WALL 22
+#define TILE_STONE_WALL 23
+#define TILE_IRON_WALL 24
+#define TILE_GOLD_WALL 25
+#define TILE_GEM_WALL 26
+#define TILE_DUNGEON_WALL 27
+#define TILE_DUNGEON_FLOOR 28
+#define TILE_DUNGEON_ENTRANCE 29
+#define TILE_MAGIC_BARRIER 30
+#define TILE_BOOKSHELVES 31
+#define TILE_WOOD_FLOOR 32
+#define TILE_MYCELIUM 33
+#define TILE_MUSHROOM_BROWN 34
+#define TILE_MUSHROOM_RED 35
+#define TILE_ICE 36
+
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
+
+//TODO: Dont forget to change back
+#define TESTGODMODE true
 
 bool screenShot;
 int loadedtp;
@@ -70,26 +100,49 @@ s16 mScrollX, mScrollY;
 sf2d_texture *icons;
 sf2d_texture *font;
 sf2d_texture *bottombg;
-sf2d_texture * minimap[5];
-u8 map[5][128*128];
-u8 data[5][128*128];
-u8 treeTable[256];
-u16 rockTable[256];
-u16 grassTable[16];
+sf2d_texture * minimap[6];
+u8 map[6][128*128];
+u8 data[6][128*128];
+u8 minimapData[128*128];
+u8 compassData[6][3];
+
 u32 dirtColor[5];
+u32 grassColor;
+u32 sandColor;
+u32 waterColor[2];
+u32 lavaColor[2];
+u32 rockColor[4];
+u32 woodColor;
+u32 ironColor;
+u32 goldColor;
+u32 gemColor;
+u32 dungeonColor[2];
+u32 myceliumColor;
+u32 mushroomColor;
+u32 snowColor;
+u32 iceColor;
+
 char currentFileName[256];
 extern u8 currentMenu;
 extern char fpsstr[];
 u8 initGame;
+u8 initBGMap;
 Item noItem;
 int airWizardHealthDisplay;
 s16 awX, awY;
 u32 tickCount;
 RecipeManager* currentRecipes;
 Entity* curChestEntity;
+char* currentCraftTitle;
 s16 curInvSel;
 bool quitGame;
 s8 currentSelection;
+bool isRemote;
+
+u16 daytime;
+int day;
+u8 season;
+bool rain;
 
 void tickTile(int x, int y);
 bool tileIsSolid(int tile, Entity * e);
@@ -99,6 +152,7 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
 void tickEntity(Entity* e);
 
 void tickTouchMap();
+void tickTouchQuickSelect();
 
 void trySpawn(int count, int level);
 
@@ -122,3 +176,15 @@ bool playerUseEnergy(int amount);
 void playerHurtTile(int tile, int xt, int yt, int damage, int dir);
 bool playerIntersectsEntity(Entity* e);
 void playerEntityInteract(Entity* e);
+void playerSetActiveItem(Item * item);
+
+void enterDungeon();
+void leaveDungeon();
+
+void setMinimapVisible(int level, int x, int y, bool visible);
+bool getMinimapVisible(int level, int x, int y);
+u32 getMinimapColor(int level, int x, int y);
+void initMinimapLevel(int level, bool loadUpWorld);
+void updateLevel1Map();
+
+void reloadColors();

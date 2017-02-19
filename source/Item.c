@@ -3,7 +3,7 @@
 char currentName[16];
 
 bool isItemEmpty(Item* item){
-    if(item->id < 6 || item->onlyOne == true) return false;
+    if(item->id < 6 || item->id > 100 || item->onlyOne == true) return false;
     if(item->countLevel < 1) return true;
     return false;
 }
@@ -59,7 +59,7 @@ Item newItem(int id, int cLevel){
     if(id != ITEM_NULL){
         if(cLevel > 999) cLevel = 999;
         item.countLevel = cLevel;
-        if(id < 7 || id > 27) item.onlyOne = true; // Tools + Furniture.
+        if(id < 7 || (id > 27 && id < 51) || id > 100) item.onlyOne = true; // Tools + Furniture.
         else item.onlyOne = false; 
     }
     item.chestPtr = NULL;
@@ -122,7 +122,6 @@ char* getItemName(int itemID, int countLevel){
                 case 4: return "Gem Pickaxe";
                 default: return "Wood Pickaxe";
             }
-
         case TOOL_AXE:
             switch(countLevel){
                 case 1: return "Rock Axe";
@@ -130,14 +129,6 @@ char* getItemName(int itemID, int countLevel){
                 case 3: return "Gold Axe";
                 case 4: return "Gem Axe";
                 default: return "Wood Axe";
-            }
-		case TOOL_BOW:
-            switch(countLevel){
-                case 1: return "Rock Bow";
-                case 2: return "Iron Bow";
-                case 3: return "Gold Bow";
-                case 4: return "Gem Bow";
-                default: return "Wood Bow";
             }
         case ITEM_ANVIL: return "Anvil";
         case ITEM_CHEST: return "Chest";
@@ -167,7 +158,42 @@ char* getItemName(int itemID, int countLevel){
         case ITEM_GLASS: sprintf(currentName,"%d Glass", countLevel); return currentName;
         case ITEM_GEM: sprintf(currentName,"%d Gem", countLevel); return currentName;
         case ITEM_SLIME: sprintf(currentName,"%d Slime", countLevel); return currentName;
-		case ITEM_ARROW: sprintf(currentName,"%d Arrows", countLevel); return currentName;
+		
+		case ITEM_LOOM: return "Loom";
+		case ITEM_ENCHANTER: return "Enchanter";
+		case ITEM_WALL_WOOD: sprintf(currentName,"%d Wood Wall", countLevel); return currentName;
+		case ITEM_WALL_STONE: sprintf(currentName,"%d Stone Wall", countLevel); return currentName;
+		case ITEM_WALL_IRON: sprintf(currentName,"%d Iron Wall", countLevel); return currentName;
+		case ITEM_WALL_GOLD: sprintf(currentName,"%d Gold Wall", countLevel); return currentName;
+		case ITEM_WALL_GEM: sprintf(currentName,"%d Gem Wall", countLevel); return currentName;
+		case ITEM_WOOL: sprintf(currentName,"%d Wool", countLevel); return currentName;
+		case ITEM_STRING: sprintf(currentName,"%d String", countLevel); return currentName;
+		case ITEM_PORK_RAW: sprintf(currentName,"%d Raw Pork", countLevel); return currentName;
+		case ITEM_PORK_COOKED: sprintf(currentName,"%d Cooked Pork", countLevel); return currentName;
+		case ITEM_BEEF_RAW: sprintf(currentName,"%d Raw Beef", countLevel); return currentName;
+		case ITEM_BEEF_COOKED: sprintf(currentName,"%d Steak", countLevel); return currentName;
+		case ITEM_LEATHER: sprintf(currentName,"%d Leather", countLevel); return currentName;
+		case ITEM_ARROW_WOOD: sprintf(currentName,"%d Wood Arrow", countLevel); return currentName;
+		case ITEM_ARROW_STONE: sprintf(currentName,"%d Rock Arrow", countLevel); return currentName;
+		case ITEM_ARROW_IRON: sprintf(currentName,"%d Iron Arrow", countLevel); return currentName;
+		case ITEM_ARROW_GOLD: sprintf(currentName,"%d Gold Arrow", countLevel); return currentName;
+		case ITEM_ARROW_GEM: sprintf(currentName,"%d Gem Arrow", countLevel); return currentName;
+		case ITEM_BONE: sprintf(currentName,"%d Bone", countLevel); return currentName;
+		case ITEM_DUNGEON_KEY: sprintf(currentName,"%d Dungeon Key", countLevel); return currentName;
+		case ITEM_WIZARD_SUMMON: sprintf(currentName,"%d Wizard Summon", countLevel); return currentName;
+		case ITEM_DRAGON_EGG: sprintf(currentName,"%d Dragon Egg", countLevel); return currentName;
+		case ITEM_DRAGON_SCALE: sprintf(currentName,"%d Dragon Scale", countLevel); return currentName;
+		case ITEM_BOOKSHELVES: sprintf(currentName,"%d Bookshelves", countLevel); return currentName;
+        case ITEM_MAGIC_DUST: sprintf(currentName,"%d Magic Dust", countLevel); return currentName;
+        case ITEM_COIN: sprintf(currentName,"%d Coins", countLevel); return currentName;
+		case TOOL_BUCKET:
+			switch(countLevel){
+                case 1: return "Water Bucket";
+                case 2: return "Lava Bucket";
+                default: return "Empty Bucket";
+            }
+		case TOOL_BOW: return "Bow";
+        case TOOL_MAGIC_COMPASS: return "Magic Compass";
         default: return ""; // null
     }
 }
@@ -214,14 +240,6 @@ char* getBasicItemName(int itemID, int countLevel){
                 case 4: return "Gem Axe";
                 default: return "Wood Axe";
             }
-		case TOOL_BOW:
-            switch(countLevel){
-                case 1: return "Rock Bow";
-                case 2: return "Iron Bow";
-                case 3: return "Gold Bow";
-                case 4: return "Gem Bow";
-                default: return "Wood Bow";
-            }
         case ITEM_ANVIL: return "Anvil";
         case ITEM_CHEST: return "Chest";
         case ITEM_OVEN: return "Oven";
@@ -250,7 +268,42 @@ char* getBasicItemName(int itemID, int countLevel){
         case ITEM_GLASS: return "Glass";
         case ITEM_GEM: return "Gem";
         case ITEM_SLIME: return "Slime";
-		case ITEM_ARROW: return "Arrow";
+		
+		case ITEM_LOOM: return "Loom";
+		case ITEM_ENCHANTER: return "Enchanter";
+		case ITEM_WALL_WOOD: return "Wood Wall";
+		case ITEM_WALL_STONE: return "Stone Wall";
+		case ITEM_WALL_IRON: return "Iron Wall";
+		case ITEM_WALL_GOLD: return "Gold Wall";
+		case ITEM_WALL_GEM: return "Gem Wall";
+		case ITEM_WOOL: return "Wool";
+		case ITEM_STRING: return "String";
+		case ITEM_PORK_RAW: return "Raw Pork";
+		case ITEM_PORK_COOKED: return "Cooked Pork";
+		case ITEM_BEEF_RAW: return "Raw Beef";
+		case ITEM_BEEF_COOKED: return "Steak";
+		case ITEM_LEATHER: return "Leather";
+		case ITEM_ARROW_WOOD: return "Wood Arrow";
+		case ITEM_ARROW_STONE: return "Rock Arrow";
+		case ITEM_ARROW_IRON: return "Iron Arrow";
+		case ITEM_ARROW_GOLD: return "Gold Arrow";
+		case ITEM_ARROW_GEM: return "Gem Arrow";
+		case ITEM_BONE: return "Bone";
+		case ITEM_DUNGEON_KEY: return "Dungeon Key";
+		case ITEM_WIZARD_SUMMON: return "Wizard Summon";
+		case ITEM_DRAGON_EGG: return "Dragon Egg";
+		case ITEM_DRAGON_SCALE: return "Dragon Scale";
+		case ITEM_BOOKSHELVES: return "Bookshelves";
+        case ITEM_MAGIC_DUST: return "Magic Dust";
+        case ITEM_COIN: return "Coin";
+		case TOOL_BUCKET:
+			switch(countLevel){
+                case 1: return "Water Bucket";
+                case 2: return "Lava Bucket";
+                default: return "Empty Bucket";
+            }
+		case TOOL_BOW: return "Bow";
+        case TOOL_MAGIC_COMPASS: return "Magic Compass";
         default: return ""; // null
     }
     

@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include "Render.h"
+#include "Menu.h"
 
 extern u8 pageNum;
 extern u8 maxPageNum;

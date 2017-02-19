@@ -12,78 +12,79 @@
 #include "MapGen.h"
 #include "Menu.h"
 #include "texturepack.h"
+#include "Network.h"
+
+// TODO: Dungeon is way to difficult
+//       -> Skeleton arrows are slower, do a little less damage
+//       -> Or instead of less damage, implement a simple armor system
+
+void initMiniMapData() {
+	int i;
+	for(i = 0; i < 128 * 128; ++i) {
+		minimapData[i] = 0;
+	}
+}
 
 void initMiniMap(bool loadUpWorld) {
-	int i, x, y;
+	int i;
 	for (i = 0; i < 5; ++i) {
-		for (x = 0; x < 128; ++x) {
-			for (y = 0; y < 128; ++y) {
-
-				if (!loadUpWorld) { // generate stairs up when making a new world.
-					switch (map[i][x + y * 128]) {
-					case TILE_STAIRS_DOWN:
-						map[i + 1][x + y * 128] = TILE_STAIRS_UP;
-						if (i == 0) {
-							map[i + 1][(x + 1) + y * 128] = TILE_HARDROCK;
-							map[i + 1][x + (y + 1) * 128] = TILE_HARDROCK;
-							map[i + 1][(x - 1) + y * 128] = TILE_HARDROCK;
-							map[i + 1][x + (y - 1) * 128] = TILE_HARDROCK;
-							map[i + 1][(x + 1) + (y + 1) * 128] = TILE_HARDROCK;
-							map[i + 1][(x - 1) + (y - 1) * 128] = TILE_HARDROCK;
-							map[i + 1][(x - 1) + (y + 1) * 128] = TILE_HARDROCK;
-							map[i + 1][(x + 1) + (y - 1) * 128] = TILE_HARDROCK;
-						} else {
-							map[i + 1][(x + 1) + y * 128] = TILE_DIRT;
-							map[i + 1][x + (y + 1) * 128] = TILE_DIRT;
-							map[i + 1][(x - 1) + y * 128] = TILE_DIRT;
-							map[i + 1][x + (y - 1) * 128] = TILE_DIRT;
-							map[i + 1][(x + 1) + (y + 1) * 128] = TILE_DIRT;
-							map[i + 1][(x - 1) + (y - 1) * 128] = TILE_DIRT;
-							map[i + 1][(x - 1) + (y + 1) * 128] = TILE_DIRT;
-							map[i + 1][(x + 1) + (y - 1) * 128] = TILE_DIRT;
-						}
-					}
-				}
-
-				/* Minimaps */
-				sf2d_set_pixel(minimap[i], x, y, getTileColor(map[i][x + y * 128]));
-			}
-		}
+		initMinimapLevel(i, loadUpWorld);
 	}
 }
 
 void initNewMap() {
 	newSeed();
-	createAndValidateSkyMap(128, 128, map[0], data[0]);
-	createAndValidateTopMap(128, 128, map[1], data[1]);
-	createAndValidateUndergroundMap(128, 128, 1, map[2], data[2]);
-	createAndValidateUndergroundMap(128, 128, 2, map[3], data[3]);
-	createAndValidateUndergroundMap(128, 128, 3, map[4], data[4]);
+	createAndValidateSkyMap(128, 128, 0, map[0], data[0]);
+	createAndValidateTopMap(128, 128, 1, map[1], data[1]);
+	createAndValidateUndergroundMap(128, 128, 1, 2, map[2], data[2]);
+	createAndValidateUndergroundMap(128, 128, 2, 3, map[3], data[3]);
+	createAndValidateUndergroundMap(128, 128, 3, 4, map[4], data[4]);
 }
 
-void setupGame(bool loadUpWorld) {
+void setupGame(bool loadUpWorld, bool remote) {
 	currentLevel = 1;
 
 	// Reset entity manager.
 	memset(&eManager, 0, sizeof(eManager));
-	sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
+	sf2d_set_clear_color(0xFF6C6D82); //sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
 
-	if (!loadUpWorld) {
-		initNewMap();
-		initPlayer();
-		airWizardHealthDisplay = 2000;
-		int i;
-		for (i = 0; i < 5; ++i) {
-			trySpawn(500, i);
-		}
-		addEntityToList(newAirWizardEntity(630, 820, 0), &eManager);
-		player.p.hasWonSaved = false;
-	} else {
-		initPlayer();
-		loadWorld(currentFileName, &eManager, &player, (u8*) map, (u8*) data);
-	}
+	initMiniMapData();
+	
+    if(!remote) {
+        if (!loadUpWorld) {
+            initNewMap();
+            initPlayer();
+            resetQuests();
+            airWizardHealthDisplay = 2000;
+            int i;
+            for (i = 0; i < 5; ++i) {
+                trySpawn(500, i);
+            }
+            addEntityToList(newAirWizardEntity(630, 820, 0), &eManager);
+            daytime = 6000;
+            day = 0;
+            season = 0;
+            rain = false;
+        } else {
+            initPlayer();
+            resetQuests();
+            loadWorld(currentFileName, &eManager, &player, (u8*) map, (u8*) data);
+        }
+        
+        updateMusic(currentLevel, daytime);
 
-	initMiniMap(loadUpWorld);
+        initMiniMap(loadUpWorld);
+    } else {
+        //TODO: Can Packets get dropped - if yes, should resending be handled by network functions (so I dont need to do it everywhere)
+        networkPacket packet = {
+            .requestMapData = {
+                .type = PACKET_REQUEST_MAPDATA,
+                .level = 1
+            }
+        };
+        networkSend(&packet, sizeof(packetRequestMapData));
+    }
+    
 	shouldRenderMap = false;
 	mScrollX = 0;
 	mScrollY = 0;
@@ -92,56 +93,95 @@ void setupGame(bool loadUpWorld) {
 	initGame = 0;
 }
 
-int xscr = 0, yscr = 0;
-void tick() {
-	if (player.p.isDead) {
-		if (player.p.endTimer < 1) {
-			currentMenu = MENU_LOSE;
-		}
-		--player.p.endTimer;
-		return;
-	} else if (player.p.hasWon) {
-		if (player.p.endTimer < 1) {
-			currentMenu = MENU_WIN;
-		}
-		--player.p.endTimer;
-		return;
+void setupBGMap(bool loadUpWorld) {
+	// Reset entity manager.
+	memset(&eManager, 0, sizeof(eManager));
+	sf2d_set_clear_color(0xFF6C6D82); //sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
+	
+	if(!loadUpWorld) {
+		newSeed();
+		createAndValidateTopMap(128, 128, 1, map[1], data[1]);
+	} else {
+		loadWorld(currentFileName, &eManager, &player, (u8*) map, (u8*) data);
 	}
 	
-	tickTouchMap();
-
-	int i;
-	for (i = 0; i < 324; ++i) {
-		int xx = rand() & 127;
-		int yy = rand() & 127;
-		tickTile(xx, yy);
-	}
-	tickPlayer();
-	xscr = player.x - 100;
-	yscr = player.y - 56;
-	if (xscr < 16)
-		xscr = 16;
-	else if (xscr > 1832)
-		xscr = 1832;
-	if (yscr < 16)
-		yscr = 16;
-	else if (yscr > 1912)
-		yscr = 1912;
-
-	for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
-		Entity * e = &eManager.entities[currentLevel][i];
-		if ((e->type != ENTITY_ZOMBIE && e->type != ENTITY_SLIME)
-				|| (e->x > player.x - 160 && e->y > player.y - 125
-						&& e->x < player.x + 160 && e->y < player.y + 125))
-			tickEntity(e);
-	}
-
+	// Reset entity manager.
+	memset(&eManager, 0, sizeof(eManager));
+	sf2d_set_clear_color(0xFF6C6D82); //sf2d_set_clear_color(RGBA8(0x82, 0x6D, 0x6C, 0xFF));
+	
+	initBGMap = 0;
 }
 
-void clearScreen(int* data, u8 fill, int size) {
-	int i;
-	for (i = 0; i < size / 4; ++i)
-		data[i] = 0xFF000000;
+int xscr = 0, yscr = 0;
+void tick() {
+    //TODO: Some stuff DOES need to happen even on client side
+    if(!isRemote) {
+        if (player.p.isDead) {
+            if (player.p.endTimer < 1) {
+                currentMenu = MENU_LOSE;
+            }
+            --player.p.endTimer;
+            return;
+        } else if (player.p.hasWon) {
+            if (player.p.endTimer < 1) {
+                currentMenu = MENU_WIN;
+            }
+            --player.p.endTimer;
+            return;
+        }
+        
+        tickTouchMap();
+        tickTouchQuickSelect();
+
+        ++daytime;
+        //daytime += 20;
+        if(daytime>=24000) {
+            daytime -= 24000;
+            ++day;
+            //TODO: maybe make season length not as hardcoded + make the transition better (fade to black and back maybe?)
+            if(day%7==0) {
+                ++season;
+                if(season==4) season = 0;
+            }
+            rain = false;
+            if(season!=3 && rand()%5==0) rain = true;
+        }
+        if(daytime==6000 && currentLevel==1) {
+            playMusic(music_floor1);
+        } else if(daytime==19000 && currentLevel==1) {
+            playMusic(music_floor1_night);
+        }
+        
+        int i;
+        for (i = 0; i < 324; ++i) {
+            int xx = rand() & 127;
+            int yy = rand() & 127;
+            tickTile(xx, yy);
+        }
+        tickPlayer();
+        xscr = player.x - 100;
+        yscr = player.y - 56;
+        if (xscr < 16)
+            xscr = 16;
+        else if (xscr > 1832)
+            xscr = 1832;
+        if (yscr < 16)
+            yscr = 16;
+        else if (yscr > 1912)
+            yscr = 1912;
+        
+        if(eManager.lastSlot[currentLevel]<80 && currentLevel != 5) {
+            trySpawn(1, currentLevel);
+        }
+
+        for (i = 0; i < eManager.lastSlot[currentLevel]; ++i) {
+            Entity * e = &eManager.entities[currentLevel][i];
+            if ((e->type != ENTITY_ZOMBIE && e->type != ENTITY_SKELETON && e->type != ENTITY_KNIGHT && e->type != ENTITY_SLIME && e->type != ENTITY_PASSIVE) 
+                || (e->type == ENTITY_GLOWWORM && (daytime>6000 || daytime<18000)) 
+                || (e->x > player.x - 160 && e->y > player.y - 125 && e->x < player.x + 160 && e->y < player.y + 125))
+                tickEntity(e);
+        }
+    }
 }
 
 char debugText[34];
@@ -157,11 +197,13 @@ int main() {
         osSetSpeedupEnable(shouldSpeedup);
 		fclose(file);
 	}
-    
-	sf2d_init();
+    sf2d_init();
 	csndInit();
+	networkInit();
+	
 	noItem = newItem(ITEM_NULL, 0);
 	
+	initMenus();
 	currentMenu = MENU_TITLE;
 	currentSelection = 0;
 	quitGame = false;
@@ -169,34 +211,26 @@ int main() {
 	icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
 	font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
 	bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
-	
-	dirtColor[0] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 0)); 
-	dirtColor[1] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 1)); 
-	dirtColor[2] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 2)); 
-	dirtColor[3] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 3)); 
-	dirtColor[4] = SWAP_UINT32(sf2d_get_pixel(icons, 16, 4)); 
 
-	loadSound(&snd_playerHurt, "resources/playerhurt.raw");
-	loadSound(&snd_playerDeath, "resources/playerdeath.raw");
-	loadSound(&snd_monsterHurt, "resources/monsterhurt.raw");
-	loadSound(&snd_test, "resources/test.raw");
-	loadSound(&snd_pickup, "resources/pickup.raw");
-	loadSound(&snd_bossdeath, "resources/bossdeath.raw");
-	loadSound(&snd_craft, "resources/craft.raw");
+	loadSounds();
+	playMusic(music_menu);
 	
 	bakeLights();
 	
+
 	int i;
-	for (i = 0; i < 5; ++i) {
-		minimap[i] = sf2d_create_texture(128, 128, TEXFMT_RGBA8,
-				SF2D_PLACE_RAM);
+	for (i = 0; i < 6; ++i) {
+		minimap[i] = sf2d_create_texture(128, 128, TEXFMT_RGBA8, SF2D_PLACE_RAM);
 		sf2d_texture_tile32(minimap[i]);
 	}
 	
+	reloadColors();
+	
 	sf2d_set_vblank_wait(true);
 
-	sf2d_set_clear_color(0xFF000000);
+	sf2d_set_clear_color(0xFF);
 
+	/* Default inputs */
 	k_up.input = KEY_DUP | KEY_CPAD_UP | KEY_CSTICK_UP;
 	k_down.input = KEY_DDOWN | KEY_CPAD_DOWN | KEY_CSTICK_DOWN;
 	k_left.input = KEY_DLEFT | KEY_CPAD_LEFT | KEY_CSTICK_LEFT;
@@ -210,6 +244,7 @@ int main() {
 	k_menuNext.input = KEY_R;
 	k_menuPrev.input = KEY_L;
 
+	/* If btnSave exists, then use that. */
 	if ((file = fopen("btnSave.bin", "rb"))) {
 		fread(&k_up.input, sizeof(int), 1, file);
 		fread(&k_down.input, sizeof(int), 1, file);
@@ -226,6 +261,7 @@ int main() {
 		fclose(file);
 	}
 	
+	/* If lastTP exists, then use that. */
 	if ((file = fopen("lastTP.bin", "r"))) {
 		char fnbuf[256];
 		fgets(fnbuf, 256, file); // get directory to texturepack
@@ -235,7 +271,7 @@ int main() {
 
 	tickCount = 0;
 	initRecipes();
-	defineTables();
+    initQuests();
 	while (aptMainLoop()) {
 		++tickCount;
 		hidScanInput();
@@ -243,8 +279,11 @@ int main() {
 
 		if (quitGame) break;
 
-		if (initGame > 0) setupGame(initGame == 1 ? true : false);
+		if (initGame > 0) setupGame(initGame == 1 ? true : false, isRemote);
+		if (initBGMap > 0) setupBGMap(initBGMap == 1 ? true : false);
 
+        networkRecieve();
+        
 		if (currentMenu == 0) {
 			tick();
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
@@ -252,13 +291,18 @@ int main() {
 			offsetX = xscr;
 			offsetY = yscr;
 			sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
-			renderLightsToStencil();
+			
+			renderLightsToStencil(false, false, true);
 
 			renderBackground(xscr, yscr);
 			renderEntities(player.x, player.y, &eManager);
 			renderPlayer();
+            renderWeather(xscr, yscr);
 			
 			resetStencilStuff();
+			
+			renderDayNight();
+			
 			offsetX = 0;
 			offsetY = 0;
 			
@@ -284,7 +328,10 @@ int main() {
 
 		sf2d_swapbuffers();
 	}
+	
+	stopMusic();
 
+    freeQuests();
 	freeRecipes();
 
 	freeLightBakes();
@@ -294,7 +341,9 @@ int main() {
 	sf2d_free_texture(minimap[2]);
 	sf2d_free_texture(minimap[3]);
 	sf2d_free_texture(minimap[4]);
+	sf2d_free_texture(minimap[5]);
 	freeSounds();
+	networkExit();
 	csndExit();
     cfguExit();
 	sf2d_fini();
