@@ -537,10 +537,17 @@ void EntityVsEntity(Entity* e1, Entity* e2){
         break;
 		case ENTITY_DRAGON:
 		    if(e2->type == ENTITY_PLAYER) hurtEntity(e2, 3, e1->dragon.dir, 0xFFAF00FF);
+<<<<<<< HEAD
         break;
         case ENTITY_DRAGONPROJECTILE:
             if(e2 != e1->dragonFire.parent) hurtEntity(e2, 1, -1, 0xFFAF00FF);
         break;
+=======
+        break;
+        case ENTITY_DRAGONPROJECTILE:
+            if(e2 != e1->dragonFire.parent) hurtEntity(e2, 1, -1, 0xFFAF00FF);
+        break;
+>>>>>>> origin/master
 		case ENTITY_ARROW:
 			switch(e1->arrow.itemID) {
 			case ITEM_ARROW_WOOD: 
@@ -711,6 +718,7 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
             if(player.p.health < 10 && playerUseEnergy(3)){
                 healPlayer(2); 
                 --item->countLevel;
+<<<<<<< HEAD
             }
             return 0;
 		case ITEM_PORK_RAW:
@@ -719,6 +727,22 @@ s8 itemTileInteract(int tile, Item* item, int x, int y, int px, int py, int dir)
                 --item->countLevel;
             }
             return 0;
+=======
+            }
+        case ITEM_GAPPLE:
+            if(player.p.health < 10 && playerUseEnergy(2)){
+                healPlayer(5); 
+                --item->countLevel;
+            }
+
+            return 0;
+		case ITEM_PORK_RAW:
+            if(player.p.health < 10 && playerUseEnergy(4+(rand()%4))){
+                healPlayer(1); 
+                --item->countLevel;
+            }
+            return 0;
+>>>>>>> origin/master
 		case ITEM_PORK_COOKED:
             if(player.p.health < 10 && playerUseEnergy(3)){
                 healPlayer(3); 

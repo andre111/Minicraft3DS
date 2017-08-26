@@ -140,7 +140,11 @@ void initRecipes(){
     loomRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (loomRecipes.size));
     loomRecipes.recipes[0] = defineRecipe(ITEM_STRING,1,1,ITEM_WOOL,1);
 	
+<<<<<<< HEAD
 	enchanterRecipes.size = 7;
+=======
+	enchanterRecipes.size = 8;
+>>>>>>> origin/master
     enchanterRecipes.recipes = (Recipe*)malloc(sizeof(Recipe) * (enchanterRecipes.size));
 	enchanterRecipes.recipes[0] = defineRecipe(TOOL_SWORD,4,2,ITEM_WOOD,5,ITEM_GEM,50);
     enchanterRecipes.recipes[1] = defineRecipe(TOOL_AXE,4,2,ITEM_WOOD,5,ITEM_GEM,50);
@@ -149,6 +153,10 @@ void initRecipes(){
     enchanterRecipes.recipes[4] = defineRecipe(TOOL_SHOVEL,4,2,ITEM_WOOD,5,ITEM_GEM,50);
 	enchanterRecipes.recipes[5] = defineRecipe(ITEM_ARROW_GEM,1,3,ITEM_WOOD,1,ITEM_GEM,3,ITEM_STRING,1);
 	enchanterRecipes.recipes[6] = defineRecipe(ITEM_WALL_GEM,1,1,ITEM_GEM,10);
+<<<<<<< HEAD
+=======
+	enchanterRecipes.recipes[7] = defineRecipe(ITEM_GAPPLE,1,2,ITEM_GOLDINGOT,10,ITEM_APPLE,1);
+>>>>>>> origin/master
 	
 }
 
