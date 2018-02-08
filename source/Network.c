@@ -106,7 +106,7 @@ void networkHandleRecieve() {
                     actualSize -= sizeof(u16);
                     
                     //if the seq id was expected handle the packet
-                    u32 nextID = networkSeqRecvLast[sourceNetworkNodeID]+1;
+                    u16 nextID = networkGetExpectedSeqFrom(sourceNetworkNodeID);
                     if(seqID==nextID) {
                         networkSeqRecvLast[sourceNetworkNodeID] = seqID;
                         ackToSend = seqID;
@@ -117,8 +117,8 @@ void networkHandleRecieve() {
                         } else {
                             processPacket(readPointer, size);
                         }
-                    } else if(seqID<=nextID-1) {
-                        ackToSend = nextID-1;
+                    } else if(networkSeqIsLowerThan(seqID, nextID)) {
+                        ackToSend = seqID;
                     }
                     readPointer += size;
                     actualSize -= size;
@@ -525,6 +525,25 @@ bool networkGetNodeName(u16 id, char *name) {
 		return true;
 	}
 	return false;
+}
+
+u16 networkGetExpectedSeqFrom(u16 id) {
+	u16 nextID = networkSeqRecvLast[id];
+	nextID += 1;
+	if(nextID==0) {
+		nextID = 1;
+	}
+	return nextID;
+}
+
+bool networkSeqIsLowerThan(u16 firstID, u16 secondID) {
+	if (secondID < 100) {
+		return (firstID < secondID) || (firstID > 65536-100);
+	} else if (secondID > 65536-100) {
+		return (firstID < secondID) && (firstID > 100);
+	} else {
+		return (firstID < secondID);
+	}
 }
 
 

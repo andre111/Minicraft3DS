@@ -40,5 +40,8 @@ u16 networkGetLocalNodeID();
 bool networkIsNodeConnected(u16 id);
 bool networkGetNodeName(u16 id, char *name);
 
+u16 networkGetExpectedSeqFrom(u16 id);
+bool networkSeqIsLowerThan(u16 firstID, u16 secondID);
+
 void networkSend(void *packet, size_t size);
 void networkSendWaitFlush();
