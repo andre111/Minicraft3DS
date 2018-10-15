@@ -4,8 +4,8 @@
 
 //only down and clicked need to be send, input is for config stuff
 typedef struct {
-	bool down, clicked;
-	int input;
+    bool down, clicked;
+    int input;
 } Key;
 
 typedef struct {

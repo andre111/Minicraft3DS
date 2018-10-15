@@ -1,32 +1,21 @@
 #pragma once
 
 #include <3ds.h>
+#include "Data.h"
+#include "Menu.h"
 #include "Entity.h"
 #include "Player.h"
 #include "Input.h"
 #include "MapGen.h"
 #include "Quests.h"
 
-#include "icons2_png.h"
+#include "icons_png.h"
 #include "player_png.h"
 #include "Font_png.h"
 #include "bottombg_png.h"
 
 #define CIRCLEPAD 0xF0000000
 #define CSTICK 0x0F000000
-
-#define MENU_NONE 0
-#define MENU_TITLE 1
-#define MENU_TUTORIAL 2
-#define MENU_ABOUT 3
-#define MENU_SETTINGS 4
-#define MENU_LOADGAME 5
-#define MENU_SETTINGS_REBIND 6
-#define MENU_SETTINGS_TP 7
-#define MENU_MULTIPLAYER_HOST 8
-#define MENU_MULTIPLAYER_JOIN 9
-#define MENU_MULTIPLAYER_WAIT 10
-#define MENU_LOADING 11
 
 #define MENU_PAUSED 100
 #define MENU_INVENTORY 101
@@ -45,50 +34,11 @@
 #define NPC_LIBRARIAN 3
 #define NPC_DWARF 4
 
-#define TILE_NULL 255
-#define TILE_GRASS 0
-#define TILE_TREE 1
-#define TILE_ROCK 2
-#define TILE_DIRT 3
-#define TILE_SAND 4
-#define TILE_WATER 5
-#define TILE_LAVA 6
-#define TILE_CACTUS 7
-#define TILE_FLOWER 8
-#define TILE_IRONORE 9
-#define TILE_GOLDORE 10
-#define TILE_GEMORE 11
-#define TILE_FARM 12
-#define TILE_WHEAT 13
-#define TILE_SAPLING_TREE 14
-#define TILE_SAPLING_CACTUS 15
-#define TILE_STAIRS_DOWN 16
-#define TILE_STAIRS_UP 17
-#define TILE_CLOUD 18
-#define TILE_HARDROCK 19
-#define TILE_CLOUDCACTUS 20
-#define TILE_HOLE 21
-
-#define TILE_WOOD_WALL 22
-#define TILE_STONE_WALL 23
-#define TILE_IRON_WALL 24
-#define TILE_GOLD_WALL 25
-#define TILE_GEM_WALL 26
-#define TILE_DUNGEON_WALL 27
-#define TILE_DUNGEON_FLOOR 28
-#define TILE_DUNGEON_ENTRANCE 29
-#define TILE_MAGIC_BARRIER 30
-#define TILE_BOOKSHELVES 31
-#define TILE_WOOD_FLOOR 32
-#define TILE_MYCELIUM 33
-#define TILE_MUSHROOM_BROWN 34
-#define TILE_MUSHROOM_RED 35
-#define TILE_ICE 36
-
 #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
 //WARNING: Having this set to different values in different clients will break multiplayer!
-#define TESTGODMODE false
+//TODO: Change back before any release
+#define TESTGODMODE true
 
 u32 localUID;
 
@@ -149,9 +99,15 @@ typedef struct _worldData {
 
 WorldData worldData;
 
+extern u32 syncTickCount;
+
 //TODO: cleanup the order
+void addItemsToWorld(Item item, s8 level, int x, int y, int count);
+bool intersects(Entity e,int x0, int y0, int x1, int y1);
 int getEntities(Entity** result, s8 level, int x0, int y0, int x1, int y1);
 
+//TODO: the move functions should probably be part of entity.c
+bool move(Entity* e, int xa, int ya);
 bool moveMob(Entity* e, int xa, int ya);
 void hurtEntity(Entity *e, int damage, int dir, u32 hurtColor, Entity *damager);
 

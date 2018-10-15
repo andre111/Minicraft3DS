@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include "Network.h"
-#include "Player.h"
+#include "../Player.h"
 
 #define PACKET_START 0
 #define PACKET_START_FILEHEADER 1

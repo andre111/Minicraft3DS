@@ -71,10 +71,10 @@ typedef struct {
 } EntityFurniture;
 
 typedef struct {
-	u8 mtype;
-	s8 xa;
+    u8 mtype;
+    s8 xa;
     s8 ya;
-	s16 health;
+    s16 health;
     s8 dir;
     s8 randWalkTime;
     s8 walkDist;
@@ -88,19 +88,9 @@ typedef struct {
     s8 lvl;
     s8 randWalkTime;
     s8 walkDist;
-	s8 randAttackTime;
+    s8 randAttackTime;
     u32 color;
 } HostileMob;
-
-typedef struct {
-    s8 xa;
-    s8 ya;
-    s16 health;
-    s8 lvl;
-    s8 dir;
-    s8 jumpTime;
-    u32 color;
-} Slime;
 
 typedef struct {
     s8 xa;
@@ -109,10 +99,10 @@ typedef struct {
     s8 randWalkTime;
     s8 walkDist;
     s8 dir;
-	int attackDelay;
-	int attackTime;
-	int attackType;
-	s8 spriteAdjust;
+    int attackDelay;
+    int attackTime;
+    int attackType;
+    s8 spriteAdjust;
 } AirWizard;
 
 typedef struct {
@@ -125,11 +115,11 @@ typedef struct {
 } Spark;
 
 typedef struct {
-	Entity* parent;
-	s16 age;
-	s16 itemID;
-	s8 xa;
-	s8 ya;
+    Entity* parent;
+    s16 age;
+    s16 itemID;
+    s8 xa;
+    s8 ya;
 } Arrow;
 
 typedef struct {
@@ -139,15 +129,15 @@ typedef struct {
     s8 randWalkTime;
     s8 walkDist;
     s8 dir;
-	int attackDelay;
-	int attackTime;
-	int attackType;
-	int animTimer;
+    int attackDelay;
+    int attackTime;
+    int attackType;
+    int animTimer;
 } Dragon;
 
 typedef struct {
     Entity* parent;
-	u8 type;
+    u8 type;
     s16 age;
     float xa;
     float ya;
@@ -159,11 +149,11 @@ typedef struct {
     s8 xa;
     s8 ya;
     s8 randWalkTime;
-	s8 waitTime;
+    s8 waitTime;
 } Glowworm;
 
 typedef struct {
-	u8 type;
+    u8 type;
 } NPC;
 
 typedef struct {
@@ -185,9 +175,10 @@ typedef struct {
 struct Entity {
     s16 x;
     s16 y;
+    s16 type;
+    
     s8 xKnockback,yKnockback;
     u8 xr,yr;
-    u8 type;
     u8 level;
     s8 hurtTime;
     s16 slotNum; // Read-only. Do not mess with this.
@@ -197,19 +188,22 @@ struct Entity {
         Player p;
         EntityItem entityItem;
         EntityFurniture entityFurniture;
-		PassiveMob passive;
+        PassiveMob passive;
         HostileMob hostile;
-        Slime slime;
         AirWizard wizard;
         Spark spark;
-		Arrow arrow;
-		Glowworm glowworm;
-		Dragon dragon;
-		DragonFire dragonFire;
+        Arrow arrow;
+        Glowworm glowworm;
+        Dragon dragon;
+        DragonFire dragonFire;
         NPC npc;
         TextParticleEntity textParticle;
         SmashParticleEntity smashParticle;
     };
+    
+    //TODO: Move more "callbacks" to this "dynamic functions"
+    //Note: These need to always be set (explicitly set to NULL if unused) ot the game will crash
+    void (*tickFunction)(Entity *e, PlayerData *pd);
 };
 
 typedef struct {
@@ -223,23 +217,25 @@ EntityManager eManager;
 Entity nullEntity;
 
 
-Entity newItemEntity(Item item, int x, int y, int level);
-Entity newFurnitureEntity(int itemID, Inventory * invPtr, int x, int y, int level);
-Entity newPassiveEntity(int type, int x, int y, int level);
-Entity newZombieEntity(int lvl, int x, int y, int level);
-Entity newSkeletonEntity(int lvl, int x, int y, int level);
-Entity newKnightEntity(int lvl, int x, int y, int level);
-Entity newSlimeEntity(int lvl, int x, int y, int level);
-Entity newAirWizardEntity(int x, int y, int level);
-Entity newSparkEntity(Entity* parent, float xa, float ya);
-Entity newDragonEntity(int x, int y, int level);
-Entity newDragonFireEntity(Entity* parent, u8 type, int x, int y, float xa, float ya);
-Entity newMagicPillarEntity(int x, int y, int level);
-Entity newTextParticleEntity(char * str, u32 color, int xa, int ya, int level);
-Entity newSmashParticleEntity(int xa, int ya, int level);
-Entity newArrowEntity(Entity* parent, int itemID, s8 xa, s8 ya, int level);
-Entity newGlowwormEntity(int x, int y, int level);
-Entity newNPCEntity(int type, int x, int y, int level);
+Entity newEntityItem(Item item, int x, int y, int level);
+Entity newEntityFurniture(int itemID, Inventory * invPtr, int x, int y, int level);
+Entity newEntityPassive(int type, int x, int y, int level);
+Entity newEntityZombie(int lvl, int x, int y, int level);
+Entity newEntitySkeleton(int lvl, int x, int y, int level);
+Entity newEntityKnight(int lvl, int x, int y, int level);
+Entity newEntitySlime(int lvl, int x, int y, int level);
+Entity newEntityAirWizard(int x, int y, int level);
+Entity newEntitySpark(Entity* parent, float xa, float ya);
+Entity newEntityDragon(int x, int y, int level);
+Entity newEntityDragonFire(Entity* parent, u8 type, int x, int y, float xa, float ya);
+Entity newEntityMagicPillar(int x, int y, int level);
+Entity newEntityArrow(Entity* parent, int itemID, s8 xa, s8 ya, int level);
+Entity newEntityGlowworm(int x, int y, int level);
+Entity newEntityNPC(int type, int x, int y, int level);
+
+Entity newParticleText(char * str, u32 color, int xa, int ya, int level);
+Entity newParticleSmash(int xa, int ya, int level);
+
 void addEntityToList(Entity e, EntityManager* em);
 void removeEntityFromList(Entity * e,int level,EntityManager* em);
 

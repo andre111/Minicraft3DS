@@ -32,11 +32,13 @@ int unzipAndLoad(char *filename, int (*fileCallback)(char *filename), char *expe
         }
         
         if (unzGetGlobalComment(zipfile, buffer, global_info.size_comment+1) < 0) {
+            free(buffer);
             unzClose(zipfile);
             return 3; // Error: Could not read global comment
         }
         
         if (strcmp(expectedComment, buffer)!=0) {
+            free(buffer);
             unzClose(zipfile);
             return 4; // Error: Global comment did not have expected value
         }
@@ -47,8 +49,8 @@ int unzipAndLoad(char *filename, int (*fileCallback)(char *filename), char *expe
     // Buffer to hold data read from the zip file.
     void *read_buffer = malloc(READ_SIZE);
     if(read_buffer==NULL) {
-        // Error: Could not allocate read buffer
-        return 5;
+        unzClose(zipfile);
+        return 5; // Error: Could not allocate read buffer
     }
 
     // Loop to extract all files
@@ -110,7 +112,7 @@ int unzipAndLoad(char *filename, int (*fileCallback)(char *filename), char *expe
                 return 10; // Error: Callback error
             }
             
-	        if(keepFiles==ZIPHELPER_CLEANUP_FILES) {
+            if(keepFiles==ZIPHELPER_CLEANUP_FILES) {
                 remove(filename);
             }
         }
@@ -151,6 +153,7 @@ int zipFiles(char *filename, char **files, int fileCount, int mode, char *commen
     void *read_buffer = malloc(READ_SIZE);
     if(read_buffer==NULL) {
         // Error: Could not allocate read buffer
+        zipClose(zipfile, "");
         return 2;
     }
     

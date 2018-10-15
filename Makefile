@@ -28,12 +28,13 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	Minicraft3DS
 BUILD		:=	build
-SOURCES		:=	source source/minizip
+SOURCES		:=	source source/minizip source/data source/menu source/editor source/network source/ingamemenu source/entity source/render
 DATA		:=	data
 INCLUDES	:=	include
+ROMFS       :=  resources
 
 APP_TITLE	:= Minicraft 3DS
-APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson. This was ported to the 3DS by Davideesk.
+APP_DESCRIPTION	:= Minicraft was originally created by Markus "Notch" Perrson.
 APP_AUTHOR	:= Davideesk and andre111
 
 #---------------------------------------------------------------------------------
@@ -121,6 +122,10 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
+ifneq ($(ROMFS),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
+endif
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
@@ -140,11 +145,11 @@ $(TARGET)-strip.elf: $(BUILD)
 #---------------------------------------------------------------------------------
 cci: $(TARGET)-strip.elf
 	@makerom -f cci -rsf resources/$(TARGET).rsf -target d -exefslogo -elf $(TARGET)-strip.elf -o $(TARGET).3ds
-	@echo "built ... sfil_sample.3ds"
+	@echo "built ... $(TARGET).3ds"
 #---------------------------------------------------------------------------------
 cia: $(TARGET)-strip.elf
 	@makerom -f cia -o $(TARGET).cia -elf $(TARGET)-strip.elf -rsf resources/$(TARGET).rsf -exefslogo -target t
-	@echo "built ... sfil_sample.cia"
+	@echo "built ... $(TARGET).cia"
 #---------------------------------------------------------------------------------
 send: $(BUILD)
 	@3dslink $(TARGET).3dsx

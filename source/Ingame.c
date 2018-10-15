@@ -6,9 +6,9 @@
 #include "IngameMenu.h"
 #include "Render.h"
 #include "MapGen.h"
-#include "Synchronizer.h"
 #include "SaveLoad.h"
-#include "Network.h"
+#include "network/Network.h"
+#include "network/Synchronizer.h"
 
 #define STALL_TIME 120
 
@@ -67,24 +67,24 @@ void generatePass2() {
 }
 
 void initNewMap() {
-	createAndValidateSkyMap(128, 128, 0, worldData.map[0], worldData.data[0]);
-	createAndValidateTopMap(128, 128, 1, worldData.map[1], worldData.data[1]);
-	createAndValidateUndergroundMap(128, 128, 1, 2, worldData.map[2], worldData.data[2]);
-	createAndValidateUndergroundMap(128, 128, 2, 3, worldData.map[3], worldData.data[3]);
-	createAndValidateUndergroundMap(128, 128, 3, 4, worldData.map[4], worldData.data[4]);
+    createAndValidateSkyMap(128, 128, 0, worldData.map[0], worldData.data[0]);
+    createAndValidateTopMap(128, 128, 1, worldData.map[1], worldData.data[1]);
+    createAndValidateUndergroundMap(128, 128, 1, 2, worldData.map[2], worldData.data[2]);
+    createAndValidateUndergroundMap(128, 128, 2, 3, worldData.map[3], worldData.data[3]);
+    createAndValidateUndergroundMap(128, 128, 3, 4, worldData.map[4], worldData.data[4]);
     generatePass2();
 }
 
 void initMiniMap(PlayerData *pd) {
-	int i;
-	for (i = 0; i < 5; ++i) {
-		initMinimapLevel(pd, i);
-	}
+    int i;
+    for (i = 0; i < 5; ++i) {
+        initMinimapLevel(pd, i);
+    }
 }
 
 void startGame(bool load, char *filename) {
     // Reset entity manager.
-	memset(&eManager, 0, sizeof(eManager));
+    memset(&eManager, 0, sizeof(eManager));
     
     // Reset players
     for(int i=0; i<playerCount; i++) {
@@ -98,7 +98,7 @@ void startGame(bool load, char *filename) {
         for (i = 0; i < 5; ++i) {
             trySpawn(500, i);
         }
-        addEntityToList(newAirWizardEntity(630, 820, 0), &eManager);
+        addEntityToList(newEntityAirWizard(630, 820, 0), &eManager);
         worldData.daytime = 6000;
         worldData.day = 0;
         worldData.season = 0;
@@ -274,13 +274,11 @@ void tickGame() {
     }
 }
 
-//for rendering -> move to a better place
-int xscr = 0, yscr = 0;
-
 void renderGame() {
     //Important: all code called from this function should never affect game state!
     sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
+    //"camera" code -> move to own class (when adding new dungeon system)
     int xscr = getLocalPlayer()->entity.x - 100;
     int yscr = getLocalPlayer()->entity.y - 56;
     if (xscr < 16)
@@ -297,8 +295,11 @@ void renderGame() {
     offsetY = yscr;
     sf2d_draw_rectangle(0, 0, 400, 240, 0xFF0C0C0C); //RGBA8(12, 12, 12, 255)); //You might think "real" black would be better, but it actually looks better that way
     
-    renderLightsToStencil(getLocalPlayer(), false, false, true);
-
+    bool nightvision = playerEffectActive(getLocalPlayer(), EFFECT_NIGHTVISION);
+    if(!nightvision) {
+        renderLightsToStencil(getLocalPlayer(), false, false, true);
+    }
+    
     renderBackground(getLocalPlayer()->entity.level, xscr, yscr);
     renderEntities(getLocalPlayer()->entity.level, getLocalPlayer()->entity.x, getLocalPlayer()->entity.y, &eManager);
     for(int i=0; i<playerCount; i++) {
@@ -306,16 +307,20 @@ void renderGame() {
     }
     renderWeather(getLocalPlayer()->entity.level, xscr, yscr);
     
-    resetStencilStuff();
+    if(!nightvision) {
+        resetStencil();
+    }
     
-    renderDayNight(getLocalPlayer());
+    if(!nightvision) {
+        renderDayNight(getLocalPlayer());
+    }
     
     offsetX = 0;
     offsetY = 0;
     
     if(shouldRenderDebug){
         sprintf(fpsstr, " FPS: %.0f, X:%d, Y:%d, E:%d", sf2d_get_fps(), getLocalPlayer()->entity.x, getLocalPlayer()->entity.y, eManager.lastSlot[getLocalPlayer()->entity.level]);
-        drawText(fpsstr, 2, 225);
+        renderText(fpsstr, 2, 225);
     }
     
     if(getLocalPlayer()->ingameMenu != MENU_NONE) {
@@ -325,29 +330,29 @@ void renderGame() {
     //game stalled -> most likely a player disconnected -> present option to exit game
     if(stallCounter>STALL_TIME) {
         renderFrame(1,1,24,14,0xFF1010AF);
-        drawText("Waiting for a long time", (400 - (23 * 12))/2, 32);
+        renderText("Waiting for a long time", (400 - (23 * 12))/2, 32);
         
         char text[50];
         sprintf(text, "Last response %is ago", stallCounter/60);
-        drawText(text, (400 - (strlen(text) * 12))/2, 64);
+        renderText(text, (400 - (strlen(text) * 12))/2, 64);
 
         if(playerLocalID==0) {
-            drawText("Press   to leave the game", (400 - (25 * 12))/2, 160);
+            renderText("Press   to leave the game", (400 - (25 * 12))/2, 160);
             renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 120, 157, 1);
             
-            drawText("A backup save will be created", (400 - (29 * 12))/2, 192);
+            renderText("A backup save will be created", (400 - (29 * 12))/2, 192);
         } else {
-            drawText("Press   to leave the game", (400 - (25 * 12))/2, 192);
+            renderText("Press   to leave the game", (400 - (25 * 12))/2, 192);
             renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 120, 189, 1);
         }
         
         if(stallAreYouSure){
             renderFrame(6,5,19,10,0xFF10108F);
             
-            drawText("Are you sure?",122,96);
-            drawText("   Yes", 164, 117);
+            renderText("Are you sure?",122,96);
+            renderText("   Yes", 164, 117);
             renderButtonIcon(localInputs.k_accept.input & -localInputs.k_accept.input, 166, 114, 1);
-            drawText("   No", 170, 133);
+            renderText("   No", 170, 133);
             renderButtonIcon(localInputs.k_decline.input & -localInputs.k_decline.input, 166, 130, 1);
         }
     }

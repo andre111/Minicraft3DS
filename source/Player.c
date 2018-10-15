@@ -16,10 +16,10 @@ void freePlayers() {
 }
 
 void playerInitMiniMapData(u8 *minimapData) {
-	int i;
-	for(i = 0; i < 128 * 128; ++i) {
-		minimapData[i] = 0;
-	}
+    int i;
+    for(i = 0; i < 128 * 128; ++i) {
+        minimapData[i] = 0;
+    }
 }
 
 void playerInitEntity(PlayerData *pd) {
@@ -28,6 +28,7 @@ void playerInitEntity(PlayerData *pd) {
     pd->entity.xr = 4;
     pd->entity.yr = 3;
     pd->entity.canSwim = true;
+    pd->entity.tickFunction = NULL;
     pd->entity.p.ax = 0;
     pd->entity.p.ay = 0;
     pd->entity.p.health = 10;
@@ -65,7 +66,17 @@ void playerInitInventory(PlayerData *pd) {
         addItemToInventory(newItem(TOOL_MAGIC_COMPASS,1), &(pd->inventory));  
         
         int i;
-        for (i = 7;i < 28;++i) addItemToInventory(newItem(i,50), &(pd->inventory));
+        for (i = 7; i < 28; ++i) addItemToInventory(newItem(i, 50), &(pd->inventory));
+        for (i = 51; i < 76; ++i) addItemToInventory(newItem(i, 50), &(pd->inventory));
+        for (i = 1001; i < 1007; ++i) addItemToInventory(newItem(i, 50), &(pd->inventory));
+    }
+}
+
+void playerInitEffects(PlayerData *pd) {
+    int i;
+    for(i = 0; i < EFFECTS_MAX; i++) {
+        pd->effects[i].level = 0;
+        pd->effects[i].time = 0;
     }
 }
 
@@ -77,6 +88,7 @@ void playerInitSprite(PlayerData *pd) {
     pd->sprite.arms = 0;
     pd->sprite.head = 0;
     pd->sprite.eyes = 0;
+    pd->sprite.accs = 0;
 }
 
 void playerInitMenus(PlayerData *pd) {
@@ -91,9 +103,9 @@ void playerInitMenus(PlayerData *pd) {
     resetNPCMenuData(&(pd->npcMenuData));
     
     pd->mapShouldRender = false;
-	pd->mapScrollX = 0;
-	pd->mapScrollY = 0;
-	pd->mapZoomLevel = 2;
+    pd->mapScrollX = 0;
+    pd->mapScrollY = 0;
+    pd->mapZoomLevel = 2;
     sprintf(pd->mapText,"x%d", pd->mapZoomLevel);
     
     pd->touchLastX = -1;
@@ -108,6 +120,7 @@ void initPlayer(PlayerData *pd) {
     playerInitMiniMapData(pd->minimapData);
     playerInitEntity(pd);
     playerInitInventory(pd);
+    playerInitEffects(pd);
     
     playerInitSprite(pd);
     
@@ -150,6 +163,24 @@ PlayerData* getLocalPlayer() {
 }
 
 //player update functions
+bool _playerUseItemEat(PlayerData *pd, int energy, int health) {
+    if(pd->entity.p.health < 10 && playerUseEnergy(pd, energy)){
+        playerHeal(pd, health); 
+        --(pd->activeItem->countLevel);
+        return true;
+    }
+    return false;
+}
+
+bool _playerUseItemScroll(PlayerData *pd, int effect, u8 level, u32 time) {
+    if(!playerEffectActive(pd, effect)) {
+        playerEffectApply(pd, effect, level, time);
+        --(pd->activeItem->countLevel);
+        return true;
+    }
+    return false;
+}
+
 bool playerUseItem(PlayerData *pd) {
     int aitemID = 0;
     Item * aitem;
@@ -192,16 +223,16 @@ bool playerUseItem(PlayerData *pd) {
                 
                 switch(pd->entity.p.dir) {
                 case 0:
-                    addEntityToList(newArrowEntity(&(pd->entity), aitemID, 0, 2, pd->entity.level), &eManager);
+                    addEntityToList(newEntityArrow(&(pd->entity), aitemID, 0, 2, pd->entity.level), &eManager);
                     break;
                 case 1:
-                    addEntityToList(newArrowEntity(&(pd->entity), aitemID, 0, -2, pd->entity.level), &eManager);
+                    addEntityToList(newEntityArrow(&(pd->entity), aitemID, 0, -2, pd->entity.level), &eManager);
                     break;
                 case 2:
-                    addEntityToList(newArrowEntity(&(pd->entity), aitemID, -2, 0, pd->entity.level), &eManager);
+                    addEntityToList(newEntityArrow(&(pd->entity), aitemID, -2, 0, pd->entity.level), &eManager);
                     break;
                 case 3:
-                    addEntityToList(newArrowEntity(&(pd->entity), aitemID, 2, 0, pd->entity.level), &eManager);
+                    addEntityToList(newEntityArrow(&(pd->entity), aitemID, 2, 0, pd->entity.level), &eManager);
                     break;
                 }
                 return true;
@@ -210,55 +241,55 @@ bool playerUseItem(PlayerData *pd) {
             
         // Health items
         case ITEM_APPLE:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 2)){
-                playerHeal(pd, 1); 
-                --(pd->activeItem->countLevel);
-            }
+            if(_playerUseItemEat(pd, 2, 1)) return true;
             break;
         case ITEM_FLESH:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 4+(rand()%4))){
-                playerHeal(pd, 1); 
-                --(pd->activeItem->countLevel);
-            }
+            if(_playerUseItemEat(pd, 4+(rand()%4), 1)) return true;
             break;
         case ITEM_BREAD:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 3)){
-                playerHeal(pd, 2); 
+            if(_playerUseItemEat(pd, 3, 2)) return true;
+            break;
+        case ITEM_PORK_RAW:
+            if(_playerUseItemEat(pd, 4+(rand()%4), 1)) return true;
+            break;
+        case ITEM_PORK_COOKED:
+            if(_playerUseItemEat(pd, 3, 3)) return true;
+            break;
+        case ITEM_BEEF_RAW:
+            if(_playerUseItemEat(pd, 4+(rand()%4), 1)) return true;
+            break;
+        case ITEM_BEEF_COOKED:
+            if(_playerUseItemEat(pd, 3, 4)) return true;
+            break;
+            
+        //special item
+        case ITEM_WIZARD_SUMMON:
+            if(pd->entity.level==0) {
                 --(pd->activeItem->countLevel);
+                
+                airWizardHealthDisplay = 2000;
+                addEntityToList(newEntityAirWizard(630, 820, 0), &eManager);
             }
             break;
-		case ITEM_PORK_RAW:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 4+(rand()%4))){
-                playerHeal(pd, 1); 
-                --(pd->activeItem->countLevel);
-            }
+        
+        //scrolls
+        case ITEM_SCROLL_UNDYING:
+            if(_playerUseItemScroll(pd, EFFECT_UNDYING, 1, EFFECTS_DURATION_INFINITE)) return true;
             break;
-		case ITEM_PORK_COOKED:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 3)){
-                playerHeal(pd, 3); 
-                --(pd->activeItem->countLevel);
-            }
+        case ITEM_SCROLL_REGENERATION:
+            if(_playerUseItemScroll(pd, EFFECT_REGENERATION, 1, 3002)) return true;
             break;
-		case ITEM_BEEF_RAW:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 4+(rand()%4))){
-                playerHeal(pd, 1); 
-                --(pd->activeItem->countLevel);
-            }
+        case ITEM_SCROLL_SPEED:
+            if(_playerUseItemScroll(pd, EFFECT_SPEED, 1, 3600*2)) return true;
             break;
-		case ITEM_BEEF_COOKED:
-            if(pd->entity.p.health < 10 && playerUseEnergy(pd, 3)){
-                playerHeal(pd, 4); 
-                --(pd->activeItem->countLevel);
-            }
+        case ITEM_SCROLL_STRENGTH:
+            if(_playerUseItemScroll(pd, EFFECT_STRENGTH, 1, 3600*4)) return true;
             break;
-		//special item
-		case ITEM_WIZARD_SUMMON:
-			if(pd->entity.level==0) {
-                --(pd->activeItem->countLevel);
-				
-				airWizardHealthDisplay = 2000;
-				addEntityToList(newAirWizardEntity(630, 820, 0), &eManager);
-			}
+        case ITEM_SCROLL_SHIELDING:
+            if(_playerUseItemScroll(pd, EFFECT_SHIELDING, 1, 3600*4)) return true;
+            break;
+        case ITEM_SCROLL_NIGHTVISION:
+            if(_playerUseItemScroll(pd, EFFECT_NIGHTVISION, 1, 3600*8)) return true;
             break;
     }
     
@@ -267,30 +298,36 @@ bool playerUseItem(PlayerData *pd) {
         pd->activeItem = &noItem;
     }
     
-	return false;
+    return false;
 }
 
 bool playerInteract(PlayerData *pd, int x0, int y0, int x1, int y1) {
-	Entity * es[eManager.lastSlot[pd->entity.level]];
-	int eSize = getEntities(es, pd->entity.level, x0, y0, x1, y1);
-	int i;
-	for (i = 0; i < eSize; ++i) {
-		Entity * ent = es[i];
-		if (ent != &(pd->entity)){
+    Entity * es[eManager.lastSlot[pd->entity.level]];
+    int eSize = getEntities(es, pd->entity.level, x0, y0, x1, y1);
+    int i;
+    for (i = 0; i < eSize; ++i) {
+        Entity * ent = es[i];
+        if (ent != &(pd->entity)){
              if (ItemVsEntity(pd, pd->activeItem, ent, pd->entity.p.dir)) return true;
         }
-	}
-	return false;
+    }
+    return false;
 }
 
 void playerAttack(PlayerData *pd) {
     bool done = false;
-	pd->entity.p.attackTimer = 5;
-	int yo = -2;
+    pd->entity.p.attackTimer = 5;
+    int yo = -2;
     int range = 12;
-	
+    
     //directly using an item
-	if(playerUseItem(pd)) return;
+    if(playerUseItem(pd)) {
+        if (pd->activeItem != &noItem && isItemEmpty(pd->activeItem)) {
+            removeItemFromInventory(pd->activeItem->slotNum, &(pd->inventory));
+            pd->activeItem = &noItem;
+        }
+        return;
+    }
     
     //interacting with entities
     switch(pd->entity.p.dir){
@@ -300,29 +337,29 @@ void playerAttack(PlayerData *pd) {
         case 3: if(playerInteract(pd, pd->entity.x + 4, pd->entity.y - 8 + yo, pd->entity.x + range, pd->entity.y + 8 + yo)) return; break;
     }
 
-	int xt = pd->entity.x >> 4;
-	int yt = (pd->entity.y + yo) >> 4;
-	int r = 12;
-	if (pd->entity.p.dir == 0) yt = (pd->entity.y + r + yo) >> 4;
-	if (pd->entity.p.dir == 1) yt = (pd->entity.y - r + yo) >> 4;
-	if (pd->entity.p.dir == 2) xt = (pd->entity.x - r) >> 4;
-	if (pd->entity.p.dir == 3) xt = (pd->entity.x + r) >> 4;
+    int xt = pd->entity.x >> 4;
+    int yt = (pd->entity.y + yo) >> 4;
+    int r = 12;
+    if (pd->entity.p.dir == 0) yt = (pd->entity.y + r + yo) >> 4;
+    if (pd->entity.p.dir == 1) yt = (pd->entity.y - r + yo) >> 4;
+    if (pd->entity.p.dir == 2) xt = (pd->entity.x - r) >> 4;
+    if (pd->entity.p.dir == 3) xt = (pd->entity.x + r) >> 4;
 
     //interacting with tiles
-	if (xt >= 0 && yt >= 0 && xt < 128 && yt < 128) {
+    if (xt >= 0 && yt >= 0 && xt < 128 && yt < 128) {
         s8 itract = itemTileInteract(getTile(pd->entity.level, xt, yt), pd, pd->activeItem, pd->entity.level, xt, yt, pd->entity.x, pd->entity.y, pd->entity.p.dir);
         if(itract > 0){
-		    if(itract==2) pd->entity.p.isCarrying = false;
-		    done = true;
+            if(itract==2) pd->entity.p.isCarrying = false;
+            done = true;
         }
-		
-		if (pd->activeItem != &noItem && isItemEmpty(pd->activeItem)) {
-			removeItemFromInventory(pd->activeItem->slotNum, &(pd->inventory));
-			pd->activeItem = &noItem;
-		}
-	}
-	
-	if(done) return;
+        
+        if (pd->activeItem != &noItem && isItemEmpty(pd->activeItem)) {
+            removeItemFromInventory(pd->activeItem->slotNum, &(pd->inventory));
+            pd->activeItem = &noItem;
+        }
+    }
+    
+    if(done) return;
     
     //breaking tiles
     if (pd->activeItem == &noItem || pd->activeItem->id == TOOL_SWORD || pd->activeItem->id == TOOL_AXE) {
@@ -333,26 +370,35 @@ void playerAttack(PlayerData *pd) {
 }
 
 bool playerUseArea(PlayerData *pd, int x0, int y0, int x1, int y1) {
-	Entity * entities[eManager.lastSlot[pd->entity.level]];
-	int i;
+    Entity * entities[eManager.lastSlot[pd->entity.level]];
+    int i;
     int ae = getEntities(entities, pd->entity.level, x0, y0, x1, y1);
-	for(i = 0; i < ae; ++i){ 
+    for(i = 0; i < ae; ++i){ 
         if(useEntity(pd, entities[i])) return true;
     }
-	return false;
+    return false;
 }
 
 bool playerUse(PlayerData *pd) {
-	int yo = -2;
-	if (pd->entity.p.dir == 0 && playerUseArea(pd, pd->entity.x - 8, pd->entity.y + 4 + yo, pd->entity.x + 8, pd->entity.y + 12 + yo)) return true;
-	if (pd->entity.p.dir == 1 && playerUseArea(pd, pd->entity.x - 8, pd->entity.y - 12 + yo, pd->entity.x + 8, pd->entity.y - 4 + yo)) return true;
-	if (pd->entity.p.dir == 3 && playerUseArea(pd, pd->entity.x + 4, pd->entity.y - 8 + yo, pd->entity.x + 12, pd->entity.y + 8 + yo)) return true;
-	if (pd->entity.p.dir == 2 && playerUseArea(pd, pd->entity.x - 12, pd->entity.y - 8 + yo, pd->entity.x - 4, pd->entity.y + 8 + yo)) return true;
-	return false;
+    int yo = -2;
+    if (pd->entity.p.dir == 0 && playerUseArea(pd, pd->entity.x - 8, pd->entity.y + 4 + yo, pd->entity.x + 8, pd->entity.y + 12 + yo)) return true;
+    if (pd->entity.p.dir == 1 && playerUseArea(pd, pd->entity.x - 8, pd->entity.y - 12 + yo, pd->entity.x + 8, pd->entity.y - 4 + yo)) return true;
+    if (pd->entity.p.dir == 3 && playerUseArea(pd, pd->entity.x + 4, pd->entity.y - 8 + yo, pd->entity.x + 12, pd->entity.y + 8 + yo)) return true;
+    if (pd->entity.p.dir == 2 && playerUseArea(pd, pd->entity.x - 12, pd->entity.y - 8 + yo, pd->entity.x - 4, pd->entity.y + 8 + yo)) return true;
+    return false;
 }
 
 void tickPlayer(PlayerData *pd, bool inmenu) {
     if (pd->entity.p.isDead) return;
+    
+    playerEffectsUpdate(pd);
+    
+    //regeneration
+    if(playerEffectActive(pd, EFFECT_REGENERATION)) {
+        if(playerEffectGetTime(pd, EFFECT_REGENERATION)%(60*10/playerEffectGetLevel(pd, EFFECT_REGENERATION)) == 1) {
+            playerHeal(pd, 1);
+        }
+    }
     
     //invincibility time
     if (pd->entity.hurtTime > 0) pd->entity.hurtTime--;
@@ -360,22 +406,22 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
     //stamina recharging
     bool swimming = isWater(pd->entity.level, pd->entity.x>>4, pd->entity.y>>4);
     if (pd->entity.p.stamina <= 0 && pd->entity.p.staminaRechargeDelay == 0 && pd->entity.p.staminaRecharge == 0) {
-		pd->entity.p.staminaRechargeDelay = 40;
-	}
+        pd->entity.p.staminaRechargeDelay = 40;
+    }
 
-	if (pd->entity.p.staminaRechargeDelay > 0) {
-		--pd->entity.p.staminaRechargeDelay;
-	}
+    if (pd->entity.p.staminaRechargeDelay > 0) {
+        --pd->entity.p.staminaRechargeDelay;
+    }
 
-	if (pd->entity.p.staminaRechargeDelay == 0) {
-		++pd->entity.p.staminaRecharge;
-		if (swimming) pd->entity.p.staminaRecharge = 0;
-		
-		while (pd->entity.p.staminaRecharge > 10) {
-			pd->entity.p.staminaRecharge -= 10;
-			if (pd->entity.p.stamina < 10) ++pd->entity.p.stamina;
-		}
-	}
+    if (pd->entity.p.staminaRechargeDelay == 0) {
+        ++pd->entity.p.staminaRecharge;
+        if (swimming) pd->entity.p.staminaRecharge = 0;
+        
+        while (pd->entity.p.staminaRecharge > 10) {
+            pd->entity.p.staminaRecharge -= 10;
+            if (pd->entity.p.stamina < 10) ++pd->entity.p.stamina;
+        }
+    }
     
     if(!inmenu) {
         if(!pd->sprite.choosen) {
@@ -388,25 +434,30 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
         pd->entity.p.ax = 0;
         pd->entity.p.ay = 0;
         
+        int moveSpeed = 1;
+        if(playerEffectActive(pd, EFFECT_SPEED)) {
+            moveSpeed += playerEffectGetLevel(pd, EFFECT_SPEED);
+        }
+        
         if (pd->inputs.k_left.down){
-            pd->entity.p.ax -= 1;
+            pd->entity.p.ax -= moveSpeed;
             pd->entity.p.dir = 2;
-            ++pd->entity.p.walkDist;
+            pd->entity.p.walkDist += moveSpeed;
         }
         if (pd->inputs.k_right.down){
-            pd->entity.p.ax += 1;
+            pd->entity.p.ax += moveSpeed;
             pd->entity.p.dir = 3;
-            ++pd->entity.p.walkDist;
+            pd->entity.p.walkDist += moveSpeed;
         }
         if (pd->inputs.k_up.down){
-            pd->entity.p.ay -= 1;
+            pd->entity.p.ay -= moveSpeed;
             pd->entity.p.dir = 1;
-            ++pd->entity.p.walkDist;
+            pd->entity.p.walkDist += moveSpeed;
         }
         if (pd->inputs.k_down.down){
-            pd->entity.p.ay += 1;
+            pd->entity.p.ay += moveSpeed;
             pd->entity.p.dir = 0;
-            ++pd->entity.p.walkDist;
+            pd->entity.p.walkDist += moveSpeed;
         }
         if (pd->entity.p.staminaRechargeDelay % 2 == 0) moveMob(&(pd->entity), pd->entity.p.ax, pd->entity.p.ay);
         
@@ -428,39 +479,40 @@ void tickPlayer(PlayerData *pd, bool inmenu) {
         
         if (pd->inputs.k_menu.clicked){ 
             pd->ingameMenuInvSel = 0;
+            pd->ingameMenuSelection = 0;
             if(!playerUse(pd)) pd->ingameMenu = MENU_INVENTORY; 
         }
     }
     
     //swimming stamina and drowning
-	if (swimming && pd->entity.p.swimTimer % 60 == 0) {
-		if (pd->entity.p.stamina > 0) {
-			if(!TESTGODMODE) --pd->entity.p.stamina;
-		} else {
-		    hurtEntity(&(pd->entity), 1, -1, 0xFFAF00FF, NULL);
-		}
-	}
+    if (swimming && pd->entity.p.swimTimer % 60 == 0) {
+        if (pd->entity.p.stamina > 0) {
+            if(!TESTGODMODE) --pd->entity.p.stamina;
+        } else {
+            hurtEntity(&(pd->entity), 1, -1, 0xFFAF00FF, NULL);
+        }
+    }
     
     if(isWater(pd->entity.level, pd->entity.x>>4, pd->entity.y>>4)) ++pd->entity.p.swimTimer;
     if(pd->entity.p.attackTimer > 0) --pd->entity.p.attackTimer;
-	
-	//TODO - maybe move to own function
-	//Update Minimap
-	int xp;
-	int yp;
-	for(xp = (pd->entity.x>>4)-5; xp<(pd->entity.x>>4)+5; ++xp) {
-		for(yp = (pd->entity.y>>4)-5; yp<(pd->entity.y>>4)+5; ++yp) {
-			if(xp>=0 && xp<128 && yp>=0 && yp<128) {
-				if(!getMinimapVisible(pd, pd->entity.level, xp, yp)) {
-					setMinimapVisible(pd, pd->entity.level, xp, yp, true);
-				}
-			}
-		}
-	}
+    
+    //TODO - maybe move to own function
+    //Update Minimap
+    int xp;
+    int yp;
+    for(xp = (pd->entity.x>>4)-5; xp<(pd->entity.x>>4)+5; ++xp) {
+        for(yp = (pd->entity.y>>4)-5; yp<(pd->entity.y>>4)+5; ++yp) {
+            if(xp>=0 && xp<128 && yp>=0 && yp<128) {
+                if(!getMinimapVisible(pd, pd->entity.level, xp, yp)) {
+                    setMinimapVisible(pd, pd->entity.level, xp, yp, true);
+                }
+            }
+        }
+    }
 }
 
 void playerSetActiveItem(PlayerData *pd, Item *item) {
-	pd->activeItem = item; 
+    pd->activeItem = item; 
     if(pd->activeItem->id > 27 && pd->activeItem->id < 51) pd->entity.p.isCarrying = true;
     else pd->entity.p.isCarrying = false;
 }
@@ -475,9 +527,64 @@ bool playerUseEnergy(PlayerData *pd, int amount) {
 void playerHeal(PlayerData *pd, int amount) {
     pd->entity.p.health += amount;
     if(pd->entity.p.health > 10) pd->entity.p.health = 10;
+    
     char healText[11];
     sprintf(healText, "%d", amount);
-    addEntityToList(newTextParticleEntity(healText,0xFF00FF00, pd->entity.x, pd->entity.y, pd->entity.level), &eManager);
+    addEntityToList(newParticleText(healText,0xFF00FF00, pd->entity.x, pd->entity.y, pd->entity.level), &eManager);
+}
+
+void playerDamage(PlayerData *pd, int damage, int dir, u32 hurtColor, Entity *damager) {
+    if (TESTGODMODE) return;
+    if (pd->entity.hurtTime > 0) return;
+    
+    //damage reducing effects
+    if(playerEffectActive(pd, EFFECT_SHIELDING)) {
+        u8 level = playerEffectGetLevel(pd, EFFECT_SHIELDING);
+        damage -= level;
+    }
+    if(damage<=0) return;
+    
+    //damage player
+    pd->entity.p.health -= damage; 
+    pd->entity.hurtTime = 10;
+    
+    //player death
+    if(pd->entity.p.health < 1){ 
+        if(playerEffectActive(pd, EFFECT_UNDYING)) {
+            pd->entity.p.health = 10;
+            playerEffectRemove(pd, EFFECT_UNDYING);
+        } else {
+            playSoundPositioned(snd_bossdeath, pd->entity.level, pd->entity.x, pd->entity.y);
+            pd->entity.p.endTimer = 60;
+            pd->entity.p.isDead = true;
+            
+            //TODO: Drop items?
+        }
+    }
+    
+    //create effects
+    playSoundPositioned(snd_monsterHurt, pd->entity.level, pd->entity.x, pd->entity.y);
+
+    char hurtText[11];
+    sprintf(hurtText, "%d", damage);
+    addEntityToList(newParticleText(hurtText, hurtColor, pd->entity.x, pd->entity.y, pd->entity.level), &eManager);
+    
+    //knockback
+    switch(dir){
+        case -1:
+            switch(pd->entity.p.dir){
+               case 0: pd->entity.yKnockback = -10; break;
+               case 1: pd->entity.yKnockback = +10; break;
+               case 2: pd->entity.xKnockback = +10; break;
+               case 3: pd->entity.xKnockback = -10; break;
+            } 
+            break;
+        break;
+        case 0: pd->entity.yKnockback = +10; break;
+        case 1: pd->entity.yKnockback = -10; break;
+        case 2: pd->entity.xKnockback = -10; break;
+        case 3: pd->entity.xKnockback = +10; break;
+    }
 }
 
 void playerSpawn(PlayerData *pd) {
@@ -491,4 +598,57 @@ void playerSpawn(PlayerData *pd) {
             break;    
         }
     }
+}
+
+// effects
+void playerEffectsUpdate(PlayerData *pd) {
+    int i;
+    for(i = 0; i < EFFECTS_MAX; i++) {
+        //if effect is active and not infinite
+        if(pd->effects[i].level!=0) {
+            if(pd->effects[i].time!=EFFECTS_DURATION_INFINITE) {
+                pd->effects[i].time--;
+                
+                //remove effect if time ran out
+                if(pd->effects[i].time==0) {
+                    pd->effects[i].level = 0;
+                }
+            }
+        }
+    }
+}
+
+bool playerEffectActive(PlayerData *pd, int effect) {
+    return pd->effects[effect].level!=0;
+}
+
+void playerEffectApply(PlayerData *pd, int effect, u8 level, u32 time) {
+    if(level==0 || time==0) return;
+    
+    bool doApply = false;
+    if(playerEffectActive(pd, effect)) {
+        if(pd->effects[effect].level<level || pd->effects[effect].time<time) {
+            doApply = true;
+        }
+    } else {
+        doApply = true;
+    }
+    
+    if(doApply) {
+        pd->effects[effect].level = level;
+        pd->effects[effect].time = time;
+    }
+}
+
+void playerEffectRemove(PlayerData *pd, int effect) {
+    pd->effects[effect].level = 0;
+    pd->effects[effect].time = 0;
+}
+
+u8 playerEffectGetLevel(PlayerData *pd, int effect) {
+    return pd->effects[effect].level;
+}
+
+u32 playerEffectGetTime(PlayerData *pd, int effect) {
+    return pd->effects[effect].time;
 }

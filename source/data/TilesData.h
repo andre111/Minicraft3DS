@@ -1,0 +1,51 @@
+#pragma once
+
+#include <3ds.h>
+
+#define TILE_NULL 255
+#define TILE_GRASS 0
+#define TILE_TREE 1
+#define TILE_ROCK 2
+#define TILE_DIRT 3
+#define TILE_SAND 4
+#define TILE_WATER 5
+#define TILE_LAVA 6
+#define TILE_CACTUS 7
+#define TILE_FLOWER 8
+#define TILE_IRONORE 9
+#define TILE_GOLDORE 10
+#define TILE_GEMORE 11
+#define TILE_FARM 12
+#define TILE_WHEAT 13
+#define TILE_SAPLING_TREE 14
+#define TILE_SAPLING_CACTUS 15
+#define TILE_STAIRS_DOWN 16
+#define TILE_STAIRS_UP 17
+#define TILE_CLOUD 18
+#define TILE_HARDROCK 19
+#define TILE_CLOUDCACTUS 20
+#define TILE_HOLE 21
+
+#define TILE_WOOD_WALL 22
+#define TILE_STONE_WALL 23
+#define TILE_IRON_WALL 24
+#define TILE_GOLD_WALL 25
+#define TILE_GEM_WALL 26
+#define TILE_DUNGEON_WALL 27
+#define TILE_DUNGEON_FLOOR 28
+#define TILE_DUNGEON_ENTRANCE 29
+#define TILE_MAGIC_BARRIER 30
+#define TILE_BOOKSHELVES 31
+#define TILE_WOOD_FLOOR 32
+#define TILE_MYCELIUM 33
+#define TILE_MUSHROOM_BROWN 34
+#define TILE_MUSHROOM_RED 35
+#define TILE_ICE 36
+
+
+#define MAX_TILE_ID 255
+#define MAX_TILE_ID_USED 36
+
+void tilesDataInit();
+
+char* tileGetName(u8 id);

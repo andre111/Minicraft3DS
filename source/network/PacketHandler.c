@@ -3,37 +3,37 @@
 #include <stdlib.h>
 #include "Synchronizer.h"
 
-FILE *recvFile;
-size_t recvFileSize;
+static FILE *recvFile;
+static size_t recvFileSize;
 
 
 
 
-void * writeBool(void *buffer, size_t *size, bool value) {
+static void * writeBool(void *buffer, size_t *size, bool value) {
     *((bool*) buffer) = value;
     *(size) += sizeof(bool);
     return buffer + sizeof(bool);
 }
 
-void * writeU8(void *buffer, size_t *size, u8 value) {
+static void * writeU8(void *buffer, size_t *size, u8 value) {
     *((u8*) buffer) = value;
     *(size) += sizeof(u8);
     return buffer + sizeof(u8);
 }
 
-void * writeU16(void *buffer, size_t *size, u16 value) {
+static void * writeU16(void *buffer, size_t *size, u16 value) {
     *((u16*) buffer) = value;
     *(size) += sizeof(u16);
     return buffer + sizeof(u16);
 }
 
-void * writeU32(void *buffer, size_t *size, u32 value) {
+static void * writeU32(void *buffer, size_t *size, u32 value) {
     *((u32*) buffer) = value;
     *(size) += sizeof(u32);
     return buffer + sizeof(u32);
 }
 
-void * writeSizeT(void *buffer, size_t *size, size_t value) {
+static void * writeSizeT(void *buffer, size_t *size, size_t value) {
     *((size_t*) buffer) = value;
     *(size) += sizeof(size_t);
     return buffer + sizeof(size_t);
@@ -42,31 +42,31 @@ void * writeSizeT(void *buffer, size_t *size, size_t value) {
 
 
 
-void * readBool(void *buffer, size_t *size, bool *value) {
+static void * readBool(void *buffer, size_t *size, bool *value) {
     *value = *((bool*) buffer);
     *(size) -= sizeof(bool);
     return buffer + sizeof(bool);
 }
 
-void * readU8(void *buffer, size_t *size, u8 *value) {
+static void * readU8(void *buffer, size_t *size, u8 *value) {
     *value = *((u8*) buffer);
     *(size) -= sizeof(u8);
     return buffer + sizeof(u8);
 }
 
-void * readU16(void *buffer, size_t *size, u16 *value) {
+static void * readU16(void *buffer, size_t *size, u16 *value) {
     *value = *((u16*) buffer);
     *(size) -= sizeof(u16);
     return buffer + sizeof(u16);
 }
 
-void * readU32(void *buffer, size_t *size, u32 *value) {
+static void * readU32(void *buffer, size_t *size, u32 *value) {
     *value = *((u32*) buffer);
     *(size) -= sizeof(u32);
     return buffer + sizeof(u32);
 }
 
-void * readSizeT(void *buffer, size_t *size, size_t *value) {
+static void * readSizeT(void *buffer, size_t *size, size_t *value) {
     *value = *((size_t*) buffer);
     *(size) -= sizeof(size_t);
     return buffer + sizeof(size_t);

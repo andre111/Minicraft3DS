@@ -2,7 +2,7 @@
 
 void toggleKey(Key* key, bool held, bool down){
     key->down = held;
-	key->clicked = down;
+    key->clicked = down;
 }
     
 void tickKeys(Inputs *inputs, u32 held, u32 down){

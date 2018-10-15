@@ -1,24 +1,24 @@
 #include "Synchronizer.h"
 
-#include "Globals.h"
-#include "Player.h"
-#include "Input.h"
 #include "Network.h"
 #include "PacketHandler.h"
-#include "Ingame.h"
+#include "../Globals.h"
+#include "../Player.h"
+#include "../Input.h"
+#include "../Ingame.h"
 
-u32 synchronizerLocalTurn;
-unsigned int synchronizerNextSeed;
-bool synchronizerRunning;
+static u32 synchronizerLocalTurn;
+static unsigned int synchronizerNextSeed;
+static bool synchronizerRunning;
 
-int synchronizerCurrentTicks;
+static int synchronizerCurrentTicks;
 
-bool synchronizerTurnReady();
-void synchronizerNextTurn();
+static bool synchronizerTurnReady();
+static void synchronizerNextTurn();
 
-void synchronizerSendLocalInputs();
+static void synchronizerSendLocalInputs();
 
-int synchronizerGetTurnIndex(u32 turn);
+static int synchronizerGetTurnIndex(u32 turn);
 
 void synchronizerInit(int seed, int initPlayerCount, int initPlayerLocalID) {
     synchronizerLocalTurn = 0;
@@ -148,7 +148,7 @@ void synchronizerTick(void (*gtick)(void)) {
 }
 
 //Test if all players (including single player) input is recieved
-bool synchronizerTurnReady() {
+static bool synchronizerTurnReady() {
     if(synchronizerCurrentTicks<SYNCHRONIZER_TICKS_PER_TURN) return true;
     
     for(int i=0; i<playerCount; i++) {
@@ -160,7 +160,7 @@ bool synchronizerTurnReady() {
     return true;
 }
 
-void synchronizerNextTurn() {
+static void synchronizerNextTurn() {
     if(synchronizerCurrentTicks<SYNCHRONIZER_TICKS_PER_TURN) {
         synchronizerCurrentTicks++;
         
@@ -184,7 +184,7 @@ void synchronizerNextTurn() {
     }
 }
 
-void synchronizerSendLocalInputs() {
+static void synchronizerSendLocalInputs() {
     //scan local inputs
     hidScanInput();
     tickKeys(&localInputs, hidKeysHeld(), hidKeysDown());
@@ -208,7 +208,7 @@ void synchronizerOnInputPacket(u8 playerID, u32 turnNumber, void *data, size_t d
     }
 }
 
-int synchronizerGetTurnIndex(u32 turn) {
+static int synchronizerGetTurnIndex(u32 turn) {
     return turn%MAX_INPUT_BUFFER;
 }
 
@@ -222,12 +222,13 @@ bool synchronizerIsRunning() {
 }
 
 // helpers for random numbers
+//TODO: this is in a wierd place currently
 #define PI 3.141592654
 double gaussrand(bool reset)
 {
-	static double U, V;
-	static int phase = 0;
-	double Z;
+    static double U, V;
+    static int phase = 0;
+    double Z;
     
     if(reset) {
         U = 0;
@@ -236,15 +237,15 @@ double gaussrand(bool reset)
         return 0;
     }
 
-	if(phase == 0) {
-		U = (rand() + 1.) / (RAND_MAX + 2.);
-		V = rand() / (RAND_MAX + 1.);
-		Z = sqrt(-2 * log(U)) * sin(2 * PI * V);
-	} else {
-		Z = sqrt(-2 * log(U)) * cos(2 * PI * V);
+    if(phase == 0) {
+        U = (rand() + 1.) / (RAND_MAX + 2.);
+        V = rand() / (RAND_MAX + 1.);
+        Z = sqrt(-2 * log(U)) * sin(2 * PI * V);
+    } else {
+        Z = sqrt(-2 * log(U)) * cos(2 * PI * V);
     }
         
-	phase = 1 - phase;
+    phase = 1 - phase;
 
-	return Z;
+    return Z;
 }

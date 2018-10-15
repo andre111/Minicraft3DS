@@ -7,7 +7,7 @@ void initTrades() {
     priestTrades.size = 5;
     priestTrades.recipes = (Recipe*)malloc(sizeof(Recipe) * (priestTrades.size));
     priestTrades.recipes[0] = defineRecipe(ITEM_DUNGEON_KEY,1,1,ITEM_MAGIC_DUST,2);
-	priestTrades.recipes[1] = defineRecipe(ITEM_WIZARD_SUMMON,1,4,ITEM_CLOUD,100,ITEM_IRONINGOT,10,ITEM_BONE,10,ITEM_LEATHER,10);
+    priestTrades.recipes[1] = defineRecipe(ITEM_WIZARD_SUMMON,1,4,ITEM_CLOUD,100,ITEM_IRONINGOT,10,ITEM_BONE,10,ITEM_LEATHER,10);
     priestTrades.recipes[2] = defineRecipe(TOOL_MAGIC_COMPASS,1,2,ITEM_IRONINGOT,10,ITEM_GLASS,5);
     priestTrades.recipes[3] = defineRecipe(ITEM_COIN,1,1,ITEM_SLIME,5);
     priestTrades.recipes[4] = defineRecipe(ITEM_COIN,1,1,ITEM_FLESH,5);
@@ -173,8 +173,8 @@ void openNPCMenu(PlayerData *pd, int npc) {
             data->currentTalkOption1 = "Trade";
             
             data->currentTalk0 = "How are ya?";
-            data->currentTalk1 = "Pretty unusal meeting a";
-            data->currentTalk2 = "human down here.";
+            data->currentTalk1 = "Pretty unusal meeting";
+            data->currentTalk2 = "someone down here.";
             data->currentTalk3 = "";
             data->currentTalk4 = "have something valuable";
             data->currentTalk5 = "to trade?";
@@ -185,7 +185,7 @@ void openNPCMenu(PlayerData *pd, int npc) {
 
 void tickTalkMenu(PlayerData *pd, NPC_MenuData *data) {
     if (pd->inputs.k_menu.clicked || pd->inputs.k_decline.clicked) pd->ingameMenu = MENU_NONE;
-	
+    
     if (pd->inputs.k_up.clicked){ ++data->currentTalkSel; if(data->currentTalkSel >= data->currentTalkOptions) data->currentTalkSel=0;}
     if (pd->inputs.k_down.clicked){ --data->currentTalkSel; if(data->currentTalkSel < 0) data->currentTalkSel=data->currentTalkOptions-1;}
     
@@ -396,23 +396,23 @@ void tickNPCMenu(PlayerData *pd) {
 
 void renderTalkMenu(NPC_MenuData *data, char * name) {
     renderFrame(1,1,24,14,0xFFFF1010);
-    drawTextColor(name,24+1,14+1,0xFF000000);
-	drawTextColor(name,24,14,0xFF6FE2E2);
+    renderTextColor(name,24+1,14+1,0xFF000000);
+    renderTextColor(name,24,14,0xFF6FE2E2);
     
-    drawText(data->currentTalk0, 32, 32);
-    drawText(data->currentTalk1, 32, 48);
-    drawText(data->currentTalk2, 32, 64);
-    drawText(data->currentTalk3, 32, 80);
-    drawText(data->currentTalk4, 32, 96);
-    drawText(data->currentTalk5, 32, 112);
+    renderText(data->currentTalk0, 32, 32);
+    renderText(data->currentTalk1, 32, 48);
+    renderText(data->currentTalk2, 32, 64);
+    renderText(data->currentTalk3, 32, 80);
+    renderText(data->currentTalk4, 32, 96);
+    renderText(data->currentTalk5, 32, 112);
     
-    if(data->currentTalkOptions>=3) drawText(data->currentTalkOption2, 64, 147);
-    if(data->currentTalkOptions>=2) drawText(data->currentTalkOption1, 64, 171);
-    if(data->currentTalkOptions>=1) drawText(data->currentTalkOption0, 64, 195);
+    if(data->currentTalkOptions>=3) renderText(data->currentTalkOption2, 64, 147);
+    if(data->currentTalkOptions>=2) renderText(data->currentTalkOption1, 64, 171);
+    if(data->currentTalkOptions>=1) renderText(data->currentTalkOption0, 64, 195);
     
-    if(data->currentTalkOptions>=3 && data->currentTalkSel==2) drawText(">", 48, 147);
-    if(data->currentTalkOptions>=2 && data->currentTalkSel==1) drawText(">", 48, 171);
-    if(data->currentTalkOptions>=1 && data->currentTalkSel==0) drawText(">", 48, 195);
+    if(data->currentTalkOptions>=3 && data->currentTalkSel==2) renderText(">", 48, 147);
+    if(data->currentTalkOptions>=2 && data->currentTalkSel==1) renderText(">", 48, 171);
+    if(data->currentTalkOptions>=1 && data->currentTalkSel==0) renderText(">", 48, 195);
 }
 
 void renderNPCMenu(NPC_MenuData *data) {

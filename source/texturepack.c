@@ -14,8 +14,7 @@ void toLowerString(char * str){
     for (i = 0; str[i] != '\0'; i++)str[i] = (char)tolower((unsigned char)str[i]);
 }
 
-int getTexturePackComment(char * filename, char * cmmtBuf){
-
+int getTexturePackComment(char * filename, char * cmmtBuf) {
     // Open the zip file
     unzFile *zipfile = unzOpen(filename);
     if ( zipfile == NULL ) return 1; // Error: ZipFile could not be opened.
@@ -41,36 +40,60 @@ int loadTexture(char * filename) {
     toLowerString(lowerFilename);
     
     if(strcmp(lowerFilename, "icons.png") == 0){
-        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+        if(icons!=NULL) {
+            sf2d_free_texture(icons);
+            icons = NULL;
+        }
+        
+        sf2d_texture* tex = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        if(tex == NULL){
             return 0;
         }
         
-        icons = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        icons = tex;
         reloadColors();
        
         texturepackUseDefaultIcons = false;
     } else if(strcmp(lowerFilename, "player.png") == 0){
-        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+        if(playerSprites!=NULL) {
+            sf2d_free_texture(playerSprites);
+            playerSprites = NULL;
+        }
+        
+        sf2d_texture* tex = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        if(tex == NULL){
             return 0;
         }
         
-        playerSprites = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        playerSprites = tex;
         
         texturepackUseDefaultPlayer = false;
     } else if(strcmp(lowerFilename, "font.png") == 0){
-        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+        if(font!=NULL) {
+            sf2d_free_texture(font);
+            font = NULL;
+        }
+        
+        sf2d_texture* tex = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        if(tex == NULL){
             return 0;
         }
         
-        font = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        font = tex;
         
         texturepackUseDefaultFont = false;
     } else if(strcmp(lowerFilename, "bottombg.png") == 0){
-        if(sfil_load_PNG_file(filename, SF2D_PLACE_RAM) == NULL){
+        if(bottombg!=NULL) {
+            sf2d_free_texture(bottombg);
+            bottombg = NULL;
+        }
+        
+        sf2d_texture* tex = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        if(tex == NULL){
             return 0;
         }
         
-        bottombg = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+        bottombg = tex;
         
         texturepackUseDefaultBottom = false;
     }
@@ -89,12 +112,34 @@ int loadTexturePack(char * filename) {
     }
     
     if(texturepackUseDefaultIcons){
-        icons = sfil_load_PNG_buffer(icons2_png, SF2D_PLACE_RAM);
+        if(icons!=NULL) {
+            sf2d_free_texture(icons);
+            icons = NULL;
+        }
+        icons = sfil_load_PNG_buffer(icons_png, SF2D_PLACE_RAM);
         reloadColors();
     }
-    if(texturepackUseDefaultPlayer) playerSprites = sfil_load_PNG_buffer(player_png, SF2D_PLACE_RAM);
-    if(texturepackUseDefaultFont) font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
-    if(texturepackUseDefaultBottom) bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
+    if(texturepackUseDefaultPlayer) {
+        if(playerSprites!=NULL) {
+            sf2d_free_texture(playerSprites);
+            playerSprites = NULL;
+        }
+        playerSprites = sfil_load_PNG_buffer(player_png, SF2D_PLACE_RAM);
+    }
+    if(texturepackUseDefaultFont) {
+        if(font!=NULL) {
+            sf2d_free_texture(font);
+            font = NULL;
+        }
+        font = sfil_load_PNG_buffer(Font_png, SF2D_PLACE_RAM);
+    }
+    if(texturepackUseDefaultBottom) {
+        if(bottombg!=NULL) {
+            sf2d_free_texture(bottombg);
+            bottombg = NULL;
+        }
+        bottombg = sfil_load_PNG_buffer(bottombg_png, SF2D_PLACE_RAM);
+    }
 
     return 0;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Data.h"
 #include "Input.h"
 #include "Entity.h"
 #include "QuestsData.h"
@@ -8,12 +9,16 @@
 #define MAX_PLAYERS 8
 #define MAX_INPUT_BUFFER 3
 
-#define PLAYER_SPRITE_HEAD_COUNT 4
+#define PLAYER_SPRITE_HEAD_COUNT 5
 #define PLAYER_SPRITE_EYES_COUNT 5
-#define PLAYER_SPRITE_BODY_COUNT 6
-#define PLAYER_SPRITE_ARMS_COUNT 6
-#define PLAYER_SPRITE_LEGS_COUNT 5
+#define PLAYER_SPRITE_BODY_COUNT 7
+#define PLAYER_SPRITE_ARMS_COUNT 7
+#define PLAYER_SPRITE_LEGS_COUNT 6
+#define PLAYER_SPRITE_ACCS_COUNT 6
 
+#define PLAYER_SPRITE_ACCS_FRONT { true, true, false, false, true, true }
+
+//TODO: Implement !GUI(with armor and effects, next to inventory?)!
 
 typedef struct _plrsp {
     bool choosen;
@@ -23,7 +28,13 @@ typedef struct _plrsp {
     u8 arms;
     u8 head;
     u8 eyes;
+    u8 accs;
 } PlayerSprite;
+
+typedef struct _plrefx {
+    u8 level;
+    u32 time;
+} PlayerEffect;
 
 typedef struct _plrd {
     //for identification in save data and sync game start
@@ -40,12 +51,14 @@ typedef struct _plrd {
     bool isSpawned;
     u8 minimapData[128*128];
     
-	int score;
+    int score;
     QuestlineManager questManager;
     
     Entity entity;
     Inventory inventory;
     Item *activeItem;
+    
+    PlayerEffect effects[EFFECTS_MAX];
     
     PlayerSprite sprite;
     
@@ -93,4 +106,13 @@ void tickPlayer(PlayerData *pd, bool inmenu);
 void playerSetActiveItem(PlayerData *pd, Item * item);
 bool playerUseEnergy(PlayerData *pd, int amount);
 void playerHeal(PlayerData *pd, int amount);
+void playerDamage(PlayerData *pd, int damage, int dir, u32 hurtColor, Entity *damager);
 void playerSpawn(PlayerData *pd);
+
+// effects
+void playerEffectsUpdate(PlayerData *pd);
+bool playerEffectActive(PlayerData *pd, int effect);
+void playerEffectApply(PlayerData *pd, int effect, u8 level, u32 time);
+void playerEffectRemove(PlayerData *pd, int effect);
+u8 playerEffectGetLevel(PlayerData *pd, int effect);
+u32 playerEffectGetTime(PlayerData *pd, int effect);
