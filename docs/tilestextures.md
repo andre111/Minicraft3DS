@@ -31,7 +31,8 @@ void tilesDataInit() {
 ```c
 case TILE_YOUR_TILE:
     // Exemple simple (une seul texture 16*16 au pixel 20.7)
-    renderTile(x, y, 20, 7, 0);
+    renderTile(TILE_WOOD_DOOR_CLOSED, 0, level, x, y);
+    renderTile16(x, y, 20, 7, 0);
     break;
 
 // Ou avec tiling connecté (comme GRASS/ROCK)
