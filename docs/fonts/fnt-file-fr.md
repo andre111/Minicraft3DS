@@ -2,9 +2,11 @@
 
 ## Objectif
 
-Minicraft utilise, pour la taille des fonts, une technique de rendu « SDF », et du bitmap classique pour certaines tailles.
+Minicraft utilisera, pour la taille des fonts, une technique de rendu « SDF », et du bitmap classique pour certaines tailles.
 Le but est de pouvoir redimensionner à la volée la taille des fonts afin d'avoir des textes plus petits, de rendre possible une meilleure UI de debug, l'affichage d'un changelog, et de créer une base qui permettra de rajouter des fonts personnalisées à partir de mods à l'avenir.
 Pour pouvoir utiliser ensuite ces fonts, il faut y associer des métadonnées (position des glyphes dans l'atlas, avances, kerning...) ; celles-ci sont décrites dans un format JSON facile à écrire/éditer.
+
+> **Statut** : le format et l'outil de conversion (`fonts/fonts.sh`) existent, mais le jeu ne charge pas encore les fichiers `.fnt` : le rendu actuel (`source/render/RenderText.c`) utilise toujours la police bitmap `resources/font.png`.
 
 ## Pourquoi un format dédié ?
 

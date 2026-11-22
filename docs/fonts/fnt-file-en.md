@@ -2,9 +2,11 @@
 
 ## objective
 
-Minicraft uses an “SDF” rendering technique for font sizes and traditional bitmaps for certain sizes.
+Minicraft will use an “SDF” rendering technique for font sizes and traditional bitmaps for certain sizes.
 The goal is to be able to resize fonts on the fly to display smaller text, enable a better debug UI, display a changelog, and create a foundation that will allow for the addition of custom fonts from mods in the future.
 To be able to use these fonts later, you need to associate metadata with them (glyph positions in the atlas, tracking, kerning, etc.); this metadata is described in a JSON format that is easy to write and edit.
+
+> **Status**: the format and the conversion tool (`fonts/fonts.sh`) exist, but the game does not load `.fnt` files yet: current rendering (`source/render/RenderText.c`) still uses the `resources/font.png` bitmap font.
 
 ## Why a dedicated format?
 

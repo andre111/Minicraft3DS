@@ -1,9 +1,9 @@
-# comment les textures sotn attribuées aux tiles
+# comment les textures sont attribuées aux tiles
 
 ## architecture générale
 
 1. **image source** : icons.png (512*512 pixels) - contient toutes les textures
-2. **Tableaux de textures** : Les textures sotn découpéees en tableaux :
+2. **Tableaux de textures** : Les textures sont découpées en tableaux :
     - tile8[(512/8)*(512/8)] = 64\*64=4096 textures de 8\*8px
     - tile16[(512/16)*(512/16)] = 32\*32=1024 textures de 16\*16px
     - tile32 et tile64 pour d'autres tailles

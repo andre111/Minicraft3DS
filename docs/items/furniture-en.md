@@ -1,5 +1,5 @@
 # furniture
 
-## architecture general
+## General architecture
 
-## interaction du joueur
+## Player interaction

@@ -29,7 +29,7 @@ Les vérifications de bornes utilisent `g_itemCount` (valeur runtime) plutôt qu
 ## Architecture actuelle
 
 ### Définition des items
-Les items vanilla sont définis dans `source/data/ItemsTypes.c` via un tableau statique interne `_vanillaDefs[]`.
+Les items vanilla sont définis dans `source/data/items/ItemsTypes.c` via un tableau statique interne `_vanillaDefs[]`.
 Ce tableau contient uniquement les définitions des items du jeu de base et n'est pas exposé directement aux autres modules.
 
 La table d'items accessible globalement est :
